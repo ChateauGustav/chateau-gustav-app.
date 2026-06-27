@@ -203,7 +203,7 @@
 <body>
 
 <nav>
-  <a class="nav-logo" href="https://chateaugustav.com">Château <span>Gustav</span></a>
+    <a class="nav-logo" href="https://chateaugustav.com">Château <span>Gustav</span></a>
   <span class="nav-tagline">Intelligent Pairing</span>
 </nav>
 
@@ -428,11 +428,18 @@ async function getPairings(mode) {
       body: JSON.stringify({ mode, inputs: collectInputs(mode) })
     });
 
+    if (response.status === 429) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "You've made a lot of searches recently. Please wait a few minutes and try again.");
+    }
     if (!response.ok) throw new Error('Request failed');
     const parsed = await response.json();
     renderResults(parsed, mode);
   } catch (err) {
-    results.innerHTML = `<div class="card"><p style="color:var(--rouge);font-size:0.9rem">Something went wrong. Please try again.</p></div>`;
+    const message = (err && err.message && err.message.includes('searches recently'))
+      ? err.message
+      : 'Something went wrong. Please try again.';
+    results.innerHTML = `<div class="card"><p style="color:var(--rouge);font-size:0.9rem">${message}</p></div>`;
     results.style.display = 'block';
   } finally {
     btn.disabled = false;
