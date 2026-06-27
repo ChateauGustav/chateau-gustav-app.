@@ -2,7 +2,7 @@
 // Runs on Vercel's servers. Holds your API key, checks your own data first,
 // and only calls Claude when nothing cheaper can answer.
 
-import { getCurated, getCached, setCached } from "../lib/pairings.js";
+import { getCurated, getCached, setCached, checkRateLimit } from "../lib/pairings.js";
 
 const SOMMELIER_SYSTEM =
   "You are an expert sommelier with WSET Level 3 knowledge and a deep understanding " +
@@ -106,6 +106,21 @@ async function callClaude(mode, inputs, apiKey) {
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  // ── Rate limit (protects your Anthropic bill) ──────────────────────────
+  // Vercel's edge sets the real client IP as the first entry in
+  // x-forwarded-for, so this is trustworthy in this environment.
+  const ip =
+    (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
+    req.socket?.remoteAddress ||
+    "unknown";
+
+  const rate = await checkRateLimit(ip);
+  if (!rate.allowed) {
+    return res.status(429).json({
+      error: "You've made a lot of searches recently. Please wait a few minutes and try again.",
+    });
   }
 
   try {
