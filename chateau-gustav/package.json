@@ -1,0 +1,14 @@
+{
+  "name": "chateau-gustav-pairing",
+  "version": "0.2.0",
+  "description": "Château Gustav — intelligent wine pairing built on flavor chemistry.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@vercel/kv": "^3.0.0"
+  }
+}
