@@ -88,3 +88,37 @@ export async function setCached(mode, inputs, value) {
     console.error("Cache write failed (continuing):", err);
   }
 }
+
+// ── Rate limiting (protects your Anthropic bill from abuse) ────────────────
+// Caps how many requests a single visitor (by IP) can make in a rolling
+// window. This counts EVERY request, not just ones that reach Claude — that
+// keeps the math simple and puts a hard ceiling on worst-case cost per IP:
+// even if every single request happened to be a brand-new, never-cached
+// question, one visitor still can't generate more than RATE_LIMIT_MAX_REQUESTS
+// worth of AI calls per window.
+//
+// Fails OPEN: if Redis is unreachable or not configured, requests are
+// allowed through rather than blocking everyone. A rate limiter going down
+// should never be the reason your whole app goes down.
+const RATE_LIMIT_WINDOW_SECONDS = 600; // 10 minutes
+const RATE_LIMIT_MAX_REQUESTS = 30; // per IP, per window
+
+export async function checkRateLimit(ip) {
+  const kv = await getKv();
+  if (!kv) return { allowed: true }; // no Redis configured — skip limiting
+
+  try {
+    const key = `ratelimit:${ip || "unknown"}`;
+    const count = await kv.incr(key);
+    if (count === 1) {
+      await kv.expire(key, RATE_LIMIT_WINDOW_SECONDS);
+    }
+    if (count > RATE_LIMIT_MAX_REQUESTS) {
+      return { allowed: false };
+    }
+    return { allowed: true };
+  } catch (err) {
+    console.error("Rate limit check failed (allowing request):", err);
+    return { allowed: true }; // fail open
+  }
+}
