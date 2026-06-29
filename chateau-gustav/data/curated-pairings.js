@@ -2284,5 +2284,324 @@ export const CURATED = {
         "Orange wine drinks like a white with the structure of a red, so treat it like a light red at the table. It's the go-to for bold, funky, fermented, and heavily spiced foods that defeat normal whites.",
       source: "curated",
     },
+
+    "cabernet franc": {
+      wineSummary:
+        "Medium-bodied with bright acidity, moderate tannin, and a herbal, peppery character — raspberry and red currant fruit alongside a signature green bell pepper note. Lighter and more savory than its offspring, Cabernet Sauvignon.",
+      pairings: [
+        {
+          food: "Herb-crusted lamb chops",
+          score: 92,
+          why: "The wine's own herbal, peppery streak mirrors the crust directly, while moderate tannin handles the lamb's fat without overwhelming it.",
+          attributes: ["Herbal", "Bright acidity", "Medium body"],
+        },
+        {
+          food: "Stuffed bell peppers",
+          score: 89,
+          why: "Cabernet Franc's signature bell-pepper aromatic (a real, identifiable compound called a pyrazine) is a literal echo of the dish.",
+          attributes: ["Bell pepper note", "Savory"],
+        },
+        {
+          food: "Herbed charcuterie",
+          score: 86,
+          why: "Bright acidity and herbal lift complement cured meats and herb-flecked pâtés without needing big tannin.",
+          attributes: ["Bright", "Versatile"],
+        },
+      ],
+      avoid: ["Sweet desserts", "Delicate raw fish"],
+      sommelierNote:
+        "That green-pepper note scares some drinkers off, but it's exactly why Cabernet Franc pairs so well with herbs and green vegetables that make most reds taste metallic.",
+      source: "curated",
+    },
+
+    "gamay (beaujolais)": {
+      wineSummary:
+        "Light-bodied, low-tannin, high-acid red with bright cherry and red berry fruit. Best served slightly chilled — Beaujolais is the classic expression.",
+      pairings: [
+        {
+          food: "Roast chicken or turkey",
+          score: 92,
+          why: "Light, juicy, and low in tannin, Gamay flexes around a whole table of holiday sides without clashing with any of them.",
+          attributes: ["Juicy", "Low tannin", "Crowd-pleaser"],
+        },
+        {
+          food: "Charcuterie board",
+          score: 89,
+          why: "Bright acidity refreshes the palate against salty, fatty cured meats.",
+          attributes: ["Bright", "Refreshing"],
+        },
+        {
+          food: "Mushroom dishes",
+          score: 85,
+          why: "A touch of earthiness in the wine meets mushroom's umami without needing any real weight.",
+          attributes: ["Earthy", "Light"],
+        },
+      ],
+      avoid: ["Heavy red meat", "Very spicy dishes"],
+      sommelierNote:
+        "Gamay is the red to serve when you don't know what everyone's eating — chill it lightly and it gets along with almost anything on a mixed table.",
+      source: "curated",
+    },
+
+    "petite sirah": {
+      wineSummary:
+        "Full-bodied and deeply colored, with high tannin, blackberry and blueberry fruit, and a peppery, smoky edge. Despite the name, not related to Syrah — it's the grape Durif.",
+      pairings: [
+        {
+          food: "Smoked brisket",
+          score: 93,
+          why: "Big tannin and smoky depth stand up to slow-smoked beef without either side backing down.",
+          attributes: ["Full body", "Smoky", "High tannin"],
+        },
+        {
+          food: "Grilled ribeye",
+          score: 90,
+          why: "Dense fruit and structure are built for a fatty, charred steak.",
+          attributes: ["Bold", "Dark fruit"],
+        },
+        {
+          food: "Aged blue cheese",
+          score: 85,
+          why: "The wine's sheer density holds its own against one of the few cheeses that can out-muscle most reds.",
+          attributes: ["Powerful", "Dense"],
+        },
+      ],
+      avoid: ["Delicate fish", "Light salads", "Subtle dishes"],
+      sommelierNote:
+        "This is one of the most tannic, inkiest reds you'll find — save it for the boldest dish on the table, not the appetizer course.",
+      source: "curated",
+    },
+
+    "carménère": {
+      wineSummary:
+        "Medium- to full-bodied Chilean specialty red with dark fruit, green peppercorn, and a signature smoky, herbal edge. Once mistaken for Merlot in the vineyard for over a century.",
+      pairings: [
+        {
+          food: "Grilled meats with chimichurri",
+          score: 92,
+          why: "Its own herbal, peppery character meets the sauce on its own terms, while dark fruit handles the char.",
+          attributes: ["Herbal", "Dark fruit", "Smoky"],
+        },
+        {
+          food: "Roasted poblano or green chile dishes",
+          score: 88,
+          why: "The grape's green pepper note makes it an unusually natural match for mild green chiles.",
+          attributes: ["Green pepper note", "Medium-full body"],
+        },
+        {
+          food: "BBQ pork",
+          score: 85,
+          why: "Smoky depth in the wine rides alongside barbecue's own smoke instead of fighting it.",
+          attributes: ["Smoky", "Approachable"],
+        },
+      ],
+      avoid: ["Delicate seafood", "Light salads"],
+      sommelierNote:
+        "Carménère is Chile's signature grape for a reason — its smoky, herbal personality pairs naturally with the country's grilled, chimichurri-driven cuisine.",
+      source: "curated",
+    },
+
+    "pinotage": {
+      wineSummary:
+        "South Africa's own grape (a Pinot Noir × Cinsault cross), medium- to full-bodied with smoky, earthy, dark berry fruit and a distinctive rustic, almost savory-bacon edge.",
+      pairings: [
+        {
+          food: "Braai (South African BBQ) meats",
+          score: 94,
+          why: "The grape and the dish were essentially made for each other — smoky char meets the wine's own smoky character.",
+          attributes: ["Smoky", "Regional match", "Bold"],
+        },
+        {
+          food: "Game meats",
+          score: 89,
+          why: "Earthy, rustic depth stands up to venison, ostrich, and other leaner game meats common in South African cooking.",
+          attributes: ["Earthy", "Full body"],
+        },
+        {
+          food: "Smoked sausage",
+          score: 86,
+          why: "Its smoky-savory streak mirrors smoked sausage directly.",
+          attributes: ["Savory", "Smoky"],
+        },
+      ],
+      avoid: ["Delicate fish", "Light salads", "Subtle dishes"],
+      sommelierNote:
+        "Pinotage's smoky character is genuinely polarizing — some drinkers love the rustic edge, others find it an acquired taste. Either way, anything off the grill is its natural home.",
+      source: "curated",
+    },
+
+    "primitivo": {
+      wineSummary:
+        "Italy's version of Zinfandel — genetically the same grape, grown in Puglia. Full-bodied with jammy dark fruit, a rustic edge, and a touch of warmth.",
+      pairings: [
+        {
+          food: "Tomato-based pasta with meat",
+          score: 91,
+          why: "Jammy fruit and soft tannin meet a rich, meaty red sauce comfortably.",
+          attributes: ["Jammy", "Soft tannin"],
+        },
+        {
+          food: "Grilled sausage",
+          score: 89,
+          why: "Bold and warm, it stands up to fatty, well-seasoned sausage with ease.",
+          attributes: ["Bold", "Warm"],
+        },
+        {
+          food: "Aged pecorino",
+          score: 85,
+          why: "Dark fruit and rustic depth complement a sharp, salty sheep's-milk cheese.",
+          attributes: ["Rustic", "Dark fruit"],
+        },
+      ],
+      avoid: ["Delicate seafood", "Light salads"],
+      sommelierNote:
+        "Primitivo and Zinfandel are the same grape with two different accents — Primitivo tends to read a touch more savory and Old World, Zinfandel a touch more fruit-forward.",
+      source: "curated",
+    },
+
+    "chenin blanc": {
+      wineSummary:
+        "A genuinely versatile white that ranges from bone-dry to lusciously sweet, with high acidity and notes of apple, quince, and honey. The Loire Valley's signature white grape.",
+      pairings: [
+        {
+          food: "Roast pork with fruit",
+          score: 91,
+          why: "Orchard-fruit character and acidity are a natural with pork, especially anything involving apple or stone fruit.",
+          attributes: ["Orchard fruit", "High acidity"],
+        },
+        {
+          food: "Spicy Southeast Asian dishes",
+          score: 89,
+          why: "An off-dry style brings just enough sweetness to cool chili heat while staying refreshing.",
+          attributes: ["Off-dry option", "Versatile"],
+        },
+        {
+          food: "Goat cheese",
+          score: 87,
+          why: "Bright acidity cuts the tang of fresh goat cheese cleanly.",
+          attributes: ["Crisp", "Tangy match"],
+        },
+      ],
+      avoid: ["Heavy red meat", "Very tannic pairings"],
+      sommelierNote:
+        "Chenin Blanc is a genuine chameleon — always check whether you've got a dry or off-dry bottle before pairing, since the two styles want very different food.",
+      source: "curated",
+    },
+
+    "vermentino": {
+      wineSummary:
+        "A coastal Italian white, crisp and herbaceous with citrus character and a saline, mineral finish. At home anywhere near the Mediterranean.",
+      pairings: [
+        {
+          food: "Grilled seafood",
+          score: 93,
+          why: "Saline minerality and bright acidity are practically engineered for anything off the grill from the sea.",
+          attributes: ["Saline", "Coastal", "Crisp"],
+        },
+        {
+          food: "Pesto pasta",
+          score: 89,
+          why: "Herbaceous notes in the wine echo basil and pine nut directly.",
+          attributes: ["Herbaceous", "Bright"],
+        },
+        {
+          food: "Light Mediterranean mezze",
+          score: 86,
+          why: "Easygoing and fresh, it works across a whole spread of olives, hummus, and grilled vegetables.",
+          attributes: ["Versatile", "Fresh"],
+        },
+      ],
+      avoid: ["Red meat", "Heavy cream sauces"],
+      sommelierNote:
+        "Vermentino has been the quiet hero behind several of this app's seafood pairing recommendations — it earns its own spot on the list for good reason.",
+      source: "curated",
+    },
+
+    "moscato / muscat": {
+      wineSummary:
+        "Aromatic, light, usually off-dry to sweet, and low in alcohol, with intensely floral, grapey character and notes of peach and orange blossom. Often gently sparkling, as in Moscato d'Asti.",
+      pairings: [
+        {
+          food: "Fresh fruit desserts",
+          score: 92,
+          why: "Its own grapey, peachy sweetness matches fruit-forward desserts without competing.",
+          attributes: ["Sweet", "Floral", "Low alcohol"],
+        },
+        {
+          food: "Spicy dishes",
+          score: 88,
+          why: "Sweetness tames chili heat while gentle fizz keeps it refreshing.",
+          attributes: ["Tames spice", "Light"],
+        },
+        {
+          food: "Brunch spreads",
+          score: 85,
+          why: "Low alcohol and bright fruit make it an easy, food-friendly daytime pour.",
+          attributes: ["Easy-drinking", "Aromatic"],
+        },
+      ],
+      avoid: ["Savory red meat", "Heavily tannic pairings"],
+      sommelierNote:
+        "Moscato gets pigeonholed as a dessert-only wine, but a chilled bottle is one of the best brunch pours there is — low alcohol, high aroma, genuinely food-friendly.",
+      source: "curated",
+    },
+
+    "verdejo": {
+      wineSummary:
+        "Spain's Rueda white — crisp and medium-bodied, with herbal, citrus, and a distinctive fennel-like note.",
+      pairings: [
+        {
+          food: "Tapas spread",
+          score: 92,
+          why: "Bright and herbal, it moves easily across a varied table of small plates the way the wine was built to.",
+          attributes: ["Versatile", "Herbal", "Crisp"],
+        },
+        {
+          food: "Grilled fish",
+          score: 89,
+          why: "Citrus-driven acidity is a clean match for simply prepared fish.",
+          attributes: ["Citrus", "Clean"],
+        },
+        {
+          food: "Herb-roasted chicken",
+          score: 86,
+          why: "Its own herbal character echoes the roast's seasoning.",
+          attributes: ["Herbal echo", "Medium body"],
+        },
+      ],
+      avoid: ["Red meat", "Heavy cream sauces"],
+      sommelierNote:
+        "Think of Verdejo as Spain's answer to Sauvignon Blanc, but with a more herbal, fennel-tinged personality of its own.",
+      source: "curated",
+    },
+
+    "cava": {
+      wineSummary:
+        "Spain's traditional-method sparkling wine, made the same way as Champagne from Macabeo, Xarel-lo, and Parellada grapes. Crisp, toasty, and consistently excellent value.",
+      pairings: [
+        {
+          food: "Jamón and Spanish tapas",
+          score: 93,
+          why: "The regional match — bubbles and acidity cut through cured ham's salt and fat perfectly.",
+          attributes: ["Regional", "High acidity", "Toasty"],
+        },
+        {
+          food: "Fried foods",
+          score: 90,
+          why: "Bubbles and acid scrub away grease the same way any good sparkling wine does.",
+          attributes: ["Cuts grease", "Crisp"],
+        },
+        {
+          food: "Paella",
+          score: 87,
+          why: "Bright acidity stands up to saffron rice and shellfish without overwhelming the dish.",
+          attributes: ["Versatile", "Bright"],
+        },
+      ],
+      avoid: ["Heavy red meat", "Very sweet desserts"],
+      sommelierNote:
+        "Cava is made the exact same way as Champagne and routinely over-delivers for the price — don't save it only for toasts.",
+      source: "curated",
+    },
   },
 };
