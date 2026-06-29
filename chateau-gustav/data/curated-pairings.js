@@ -1586,6 +1586,551 @@ export const CURATED = {
         "Braised pork is rich but not heavy in tannin-demanding fat the way beef is — soft, spicy reds with good acidity flatter it far better than a structured Cabernet.",
       source: "curated",
     },
+
+    "beef|smoked / bbq|bbq / smoky": {
+      dishSummary:
+        "Slow-smoked beef brisket — deep smoke, rendered fat, and a sweet-savory bark, the centerpiece of Texas barbecue.",
+      pairings: [
+        {
+          wine: "Zinfandel",
+          region: "Lodi or Sonoma, California",
+          score: 94,
+          why: "Jammy fruit and gentle sweetness mirror the bark's char and rub, while the wine's warmth rides alongside the smoke instead of fighting it.",
+          attributes: ["Jammy fruit", "Bold", "Matches smoke"],
+          budgetNote: "Great bottles in the $15–$25 range.",
+        },
+        {
+          wine: "Petite Sirah",
+          region: "California",
+          score: 91,
+          why: "Brisket's richness and long cook time can take real tannin and density — Petite Sirah's smoky, peppery edge meets the bark head-on.",
+          attributes: ["Full body", "Smoky", "High tannin"],
+        },
+        {
+          wine: "Rioja Reserva (Tempranillo)",
+          region: "Rioja, Spain",
+          score: 86,
+          why: "Leather and dried-herb notes from barrel age echo the smoke, with tannin soft enough not to clash.",
+          attributes: ["Leather", "Dried herb", "Smooth"],
+        },
+      ],
+      avoid: ["Crisp light whites", "Delicate Pinot Noir", "High-acid Sangiovese"],
+      sommelierNote:
+        "Brisket is the heavyweight of American barbecue — it wants a wine with real shoulders. Save anything delicate for a lighter cut.",
+      source: "curated",
+    },
+
+    "beef|filet|peppercorn": {
+      dishSummary:
+        "Filet mignon au poivre — a lean, tender cut under a sharp, cracked-peppercorn crust, pan-seared in butter.",
+      pairings: [
+        {
+          wine: "Pinot Noir",
+          region: "Burgundy, France",
+          score: 92,
+          why: "Even with pepper in play, filet's leanness still wants finesse over power — Burgundy's silk and red fruit handle the spice gently rather than fighting it.",
+          attributes: ["Silky", "Elegant", "Light tannin"],
+        },
+        {
+          wine: "Cabernet Franc",
+          region: "Loire Valley, France",
+          score: 89,
+          why: "Its own herbal, peppery character meets the crust directly, while medium body respects how lean the cut is.",
+          attributes: ["Peppery", "Medium body", "Herbal"],
+        },
+        {
+          wine: "Côtes du Rhône",
+          region: "Rhône Valley, France",
+          score: 85,
+          why: "A Grenache-Syrah blend brings gentle spice and warmth without the heavy tannin a lean filet doesn't need.",
+          attributes: ["Spice-driven", "Soft tannin"],
+        },
+      ],
+      avoid: ["Young, firm Cabernet Sauvignon", "Heavy oak whites"],
+      sommelierNote:
+        "Pepper tempts everyone toward a big Syrah, but filet's leanness hasn't changed just because there's a crust on it — let the wine's own spice notes do the work, not its tannin.",
+      source: "curated",
+    },
+
+    "beef|pan-seared|mushroom / truffle": {
+      dishSummary:
+        "Pan-seared steak in a rich mushroom and cream sauce — classic steak Diane territory, savory and indulgent.",
+      pairings: [
+        {
+          wine: "Pinot Noir",
+          region: "Burgundy, France",
+          score: 92,
+          why: "Earthy, forest-floor notes mirror the mushroom directly, and the wine's silk won't fight the cream.",
+          attributes: ["Earthy mirror", "Silky", "Elegant"],
+        },
+        {
+          wine: "Merlot",
+          region: "Saint-Émilion, France",
+          score: 89,
+          why: "Plush texture and supple tannin flatter the cream sauce without adding harshness.",
+          attributes: ["Plush", "Supple tannin"],
+        },
+        {
+          wine: "Nebbiolo",
+          region: "Piedmont, Italy",
+          score: 85,
+          why: "Its signature truffle and rose aromatics echo the mushroom sauce in an almost uncanny way.",
+          attributes: ["Truffle notes", "Aromatic"],
+        },
+      ],
+      avoid: ["Young, high-tannin Cabernet", "Light crisp whites"],
+      sommelierNote:
+        "Mushroom and cream together want an earthy red with enough silk not to curdle the moment in your mouth — power isn't the point here.",
+      source: "curated",
+    },
+
+    "chicken|braised|au jus / red wine": {
+      dishSummary:
+        "Coq au vin — chicken braised slowly in red wine with mushrooms, lardons, and herbs. Deeply savory and rustic.",
+      pairings: [
+        {
+          wine: "Pinot Noir",
+          region: "Burgundy, France",
+          score: 95,
+          why: "The dish is traditionally cooked in Burgundy itself — pouring the same wine you braised with is the oldest trick in the book, and it never misses.",
+          attributes: ["Regional match", "Earthy", "Silky"],
+        },
+        {
+          wine: "Côtes du Rhône",
+          region: "Rhône Valley, France",
+          score: 89,
+          why: "A Grenache-Syrah blend brings warmth and savory depth that echo the braise.",
+          attributes: ["Savory", "Warm spice"],
+        },
+        {
+          wine: "Gamay (Beaujolais)",
+          region: "Beaujolais, France",
+          score: 86,
+          why: "Bright and food-friendly, it's the classic French bistro pour alongside this exact dish.",
+          attributes: ["Bright", "Juicy", "Regional"],
+        },
+      ],
+      avoid: ["Big tannic young Cabernet", "Oaky Chardonnay"],
+      sommelierNote:
+        "When a dish is literally cooked in a particular wine, that wine — or something close to it — is almost always the right thing to pour beside it.",
+      source: "curated",
+    },
+
+    "chicken|braised|tomato-based": {
+      dishSummary:
+        "Chicken cacciatore — braised chicken in a rustic tomato sauce with peppers, onions, and herbs.",
+      pairings: [
+        {
+          wine: "Sangiovese",
+          region: "Chianti, Tuscany",
+          score: 94,
+          why: "High acidity matches the tomato directly, and savory cherry notes flatter the braised chicken — the regional Italian answer.",
+          attributes: ["High acidity", "Savory", "Regional match"],
+        },
+        {
+          wine: "Barbera",
+          region: "Piedmont, Italy",
+          score: 90,
+          why: "Juicy and low in tannin, it's effortless with tomato-forward braises.",
+          attributes: ["Juicy", "Low tannin"],
+        },
+        {
+          wine: "Montepulciano d'Abruzzo",
+          region: "Abruzzo, Italy",
+          score: 86,
+          why: "Soft and dark-fruited, it's a comfortable, easygoing partner for a rustic braise.",
+          attributes: ["Soft", "Dark fruit"],
+        },
+      ],
+      avoid: ["Oaky Chardonnay", "High-tannin young Cabernet"],
+      sommelierNote:
+        "Tomato wants acid first, always — Italian reds bred alongside this exact cuisine almost never miss.",
+      source: "curated",
+    },
+
+    "duck|grilled|bbq / smoky": {
+      dishSummary:
+        "BBQ-glazed grilled duck — crisp skin, rich fat, and a sweet-savory char reminiscent of Chinese roast duck.",
+      pairings: [
+        {
+          wine: "Pinot Noir",
+          region: "Oregon or Burgundy",
+          score: 93,
+          why: "Earthy acidity cuts duck's richness while red fruit flatters the savory glaze — the classic duck pairing holds even with a smoky glaze involved.",
+          attributes: ["Cuts richness", "Earthy", "Red fruit"],
+        },
+        {
+          wine: "Gewürztraminer",
+          region: "Alsace, France",
+          score: 90,
+          why: "For white-wine drinkers, its aromatic, off-dry character mirrors the glaze's sweetness and stands up to the richness.",
+          attributes: ["Off-dry", "Aromatic", "Bold"],
+        },
+        {
+          wine: "Zinfandel",
+          region: "California",
+          score: 86,
+          why: "Jammy fruit directly mirrors a sweet barbecue-style glaze.",
+          attributes: ["Jammy", "Bold"],
+        },
+      ],
+      avoid: ["Delicate dry whites", "High-tannin young reds"],
+      sommelierNote:
+        "Duck's richness can comfortably take either a red or an aromatic off-dry white — let the sweetness of the glaze be your guide.",
+      source: "curated",
+    },
+
+    "tuna|pan-seared|peppercorn": {
+      dishSummary:
+        "Seared ahi tuna au poivre — rare in the center, wrapped in a sharp, cracked-pepper crust.",
+      pairings: [
+        {
+          wine: "Pinot Noir (chilled)",
+          region: "Oregon or Burgundy",
+          score: 91,
+          why: "Tuna is meaty enough for a light red; chilling it keeps the acidity crisp against the pepper's heat.",
+          attributes: ["Light red", "Serve chilled", "Bright acidity"],
+        },
+        {
+          wine: "Champagne",
+          region: "Champagne, France",
+          score: 88,
+          why: "Bubbles and acidity refresh the palate against the pepper, without competing for attention.",
+          attributes: ["Sparkling", "High acidity"],
+        },
+        {
+          wine: "Grüner Veltliner",
+          region: "Austria",
+          score: 86,
+          why: "Its own white-pepper note is a direct, almost uncanny echo of the crust.",
+          attributes: ["White pepper note", "Crisp"],
+        },
+      ],
+      avoid: ["Big tannic reds", "Oaky Chardonnay"],
+      sommelierNote:
+        "Tuna can take a light red, but pepper specifically wants a wine that echoes its own spice rather than tries to out-power it.",
+      source: "curated",
+    },
+
+    "halibut|pan-seared|miso / soy glaze": {
+      dishSummary:
+        "Miso-glazed halibut — delicate white fish lacquered in a savory-sweet miso glaze and caramelized under high heat.",
+      pairings: [
+        {
+          wine: "Off-Dry Riesling",
+          region: "Mosel, Germany",
+          score: 92,
+          why: "A touch of sweetness balances miso's umami and salt directly, while acidity keeps the dish feeling light.",
+          attributes: ["Off-dry", "High acidity", "Balances umami"],
+        },
+        {
+          wine: "Albariño",
+          region: "Rías Baixas, Spain",
+          score: 88,
+          why: "Saline and bright, it stands up to the glaze without competing with the delicate fish underneath.",
+          attributes: ["Saline", "Fresh"],
+        },
+        {
+          wine: "Chenin Blanc",
+          region: "Loire Valley, France",
+          score: 85,
+          why: "An off-dry style brings orchard fruit and acidity that meet the glaze's sweetness comfortably.",
+          attributes: ["Orchard fruit", "Versatile"],
+        },
+      ],
+      avoid: ["Tannic reds", "Heavily oaked whites"],
+      sommelierNote:
+        "Miso glazes want fruit and acidity in the glass, not tannin — the umami and salt will make a dry, tannic red taste metallic.",
+      source: "curated",
+    },
+
+    "halibut|grilled|herb crust": {
+      dishSummary:
+        "Grilled halibut with an herb crust — lean, delicate white fish with bright, aromatic seasoning and light char.",
+      pairings: [
+        {
+          wine: "Sauvignon Blanc",
+          region: "Loire Valley or New Zealand",
+          score: 91,
+          why: "Herbal, citrus-driven character mirrors the crust directly while staying light enough for delicate fish.",
+          attributes: ["Herbal", "Citrus", "Crisp"],
+        },
+        {
+          wine: "Grüner Veltliner",
+          region: "Austria",
+          score: 89,
+          why: "Its white-pepper and herbal snap pairs naturally with green herb seasoning.",
+          attributes: ["Herbal", "Crisp"],
+        },
+        {
+          wine: "Albariño",
+          region: "Rías Baixas, Spain",
+          score: 86,
+          why: "Saline freshness complements the grill char without overwhelming the fish.",
+          attributes: ["Saline", "Fresh"],
+        },
+      ],
+      avoid: ["Red wine", "Heavily oaked whites", "Sweet wines"],
+      sommelierNote:
+        "Lean white fish is fragile — the wine should whisper, not shout, even when there's a bright herb crust involved.",
+      source: "curated",
+    },
+
+    "lobster|poached|cream sauce": {
+      dishSummary:
+        "Lobster thermidor — rich, butter-poached lobster in a creamy, sherry-laced sauce. Utterly decadent.",
+      pairings: [
+        {
+          wine: "Oaked Chardonnay",
+          region: "Côte de Beaune or Napa",
+          score: 95,
+          why: "This is the one dish where going big and buttery is exactly right — the wine's creamy texture mirrors the sauce directly.",
+          attributes: ["Buttery", "Full texture", "Luxurious"],
+        },
+        {
+          wine: "Champagne",
+          region: "Champagne, France",
+          score: 90,
+          why: "Bubbles and acidity cut the richness while still feeling celebratory enough for the dish.",
+          attributes: ["Sparkling", "Cuts richness"],
+        },
+        {
+          wine: "Viognier",
+          region: "Condrieu, France",
+          score: 85,
+          why: "Aromatic and full-textured, it flatters the dish's sheer richness.",
+          attributes: ["Aromatic", "Full texture"],
+        },
+      ],
+      avoid: ["Tannic reds", "Light, austere whites"],
+      sommelierNote:
+        "Thermidor is rich enough to make oak and butter in the wine an asset rather than a distraction — one of the few times more is more.",
+      source: "curated",
+    },
+
+    "scallops|grilled|bbq / smoky": {
+      dishSummary:
+        "Bacon-wrapped grilled scallops — sweet shellfish with smoky, salty char from both the grill and the bacon.",
+      pairings: [
+        {
+          wine: "Champagne",
+          region: "Champagne, France",
+          score: 91,
+          why: "Bubbles and acidity cut straight through bacon fat and grill smoke.",
+          attributes: ["Sparkling", "Cuts fat"],
+        },
+        {
+          wine: "Chablis",
+          region: "Burgundy, France",
+          score: 89,
+          why: "Mineral and crisp, it balances the scallop's sweetness against the smoky, salty bacon.",
+          attributes: ["Mineral", "Crisp"],
+        },
+        {
+          wine: "Dry Rosé",
+          region: "Provence, France",
+          score: 86,
+          why: "Light and fresh, it bridges the sweet-and-smoky combination comfortably.",
+          attributes: ["Fresh", "Versatile"],
+        },
+      ],
+      avoid: ["Big reds", "Sweet wines"],
+      sommelierNote:
+        "Bacon fat needs the same acid-cutting treatment as any other smoky, fatty dish — don't let the scallop's sweetness fool you into reaching for something too soft.",
+      source: "curated",
+    },
+
+    "vegetarian|pan-seared|cream sauce": {
+      dishSummary:
+        "Pan-seared mushrooms, spinach, or seasonal vegetables in a rich, velvety cream sauce.",
+      pairings: [
+        {
+          wine: "Chardonnay",
+          region: "Burgundy or California",
+          score: 91,
+          why: "Round texture matches the cream's weight in a comfortable, like-with-like pairing.",
+          attributes: ["Round texture", "Matches weight"],
+        },
+        {
+          wine: "Pinot Grigio",
+          region: "Northern Italy",
+          score: 86,
+          why: "Crisp and clean, it refreshes the palate against the richness.",
+          attributes: ["Crisp", "Clean"],
+        },
+        {
+          wine: "Champagne",
+          region: "Champagne, France",
+          score: 85,
+          why: "Bubbles cut through the cream the same way they do with any rich dish.",
+          attributes: ["Sparkling", "Cuts richness"],
+        },
+      ],
+      avoid: ["Tannic reds", "Very sweet wines"],
+      sommelierNote:
+        "Cream sauces need either matching roundness or cutting acidity — this is true whether or not there's meat anywhere on the plate.",
+      source: "curated",
+    },
+
+    "vegetarian|pan-seared|miso / soy glaze": {
+      dishSummary:
+        "Miso-glazed tofu or vegetables, pan-seared until caramelized — savory, umami-rich, and gently sweet.",
+      pairings: [
+        {
+          wine: "Off-Dry Riesling",
+          region: "Mosel, Germany",
+          score: 92,
+          why: "Sweetness and acidity balance miso's salt and umami directly, the same logic that works with any miso glaze.",
+          attributes: ["Off-dry", "High acidity"],
+        },
+        {
+          wine: "Grüner Veltliner",
+          region: "Austria",
+          score: 88,
+          why: "Peppery and crisp, it cuts through the glaze's richness.",
+          attributes: ["Peppery", "Crisp"],
+        },
+        {
+          wine: "Gewürztraminer",
+          region: "Alsace, France",
+          score: 85,
+          why: "Aromatic and slightly sweet, it echoes the glaze's savory-sweet character.",
+          attributes: ["Aromatic", "Off-dry"],
+        },
+      ],
+      avoid: ["Tannic reds", "Heavily oaked whites"],
+      sommelierNote:
+        "Umami-forward glazes want fruit and acidity over tannin — true whether the protein underneath is fish, chicken, or tofu.",
+      source: "curated",
+    },
+
+    "pork|pan-seared|cream sauce": {
+      dishSummary:
+        "Pan-seared pork tenderloin in a creamy mustard or herb sauce — tender, mild, and comforting.",
+      pairings: [
+        {
+          wine: "Chardonnay",
+          region: "Burgundy or California",
+          score: 90,
+          why: "Round texture matches the cream's weight without overwhelming the mild pork.",
+          attributes: ["Round texture", "Comfortable match"],
+        },
+        {
+          wine: "Riesling",
+          region: "Alsace or Germany",
+          score: 88,
+          why: "Pork's natural sweetness loves orchard fruit and acidity, which also cuts neatly through the cream.",
+          attributes: ["Orchard fruit", "High acidity"],
+        },
+        {
+          wine: "Pinot Noir",
+          region: "Burgundy or Oregon",
+          score: 85,
+          why: "Light and earthy, it won't fight the delicate sauce if you'd rather pour red.",
+          attributes: ["Light red", "Earthy"],
+        },
+      ],
+      avoid: ["Big tannic reds", "Very dry, austere whites"],
+      sommelierNote:
+        "Pork's mild sweetness plus a cream sauce wants a wine with either matching roundness or real cutting acidity — both directions work.",
+      source: "curated",
+    },
+
+    "shrimp|pan-seared|tomato-based": {
+      dishSummary:
+        "Shrimp fra diavolo — spicy, garlicky tomato sauce with sweet shrimp. A fiery Italian-American classic.",
+      pairings: [
+        {
+          wine: "Vermentino",
+          region: "Sardinia or Liguria, Italy",
+          score: 91,
+          why: "Coastal and bright, it handles the tomato's acidity and the dish's heat together without losing its footing.",
+          attributes: ["Coastal", "Bright", "Crisp"],
+        },
+        {
+          wine: "Off-Dry Riesling",
+          region: "Mosel or Finger Lakes",
+          score: 88,
+          why: "A touch of sweetness tames the chili heat while acidity still matches the tomato.",
+          attributes: ["Tames spice", "High acidity"],
+        },
+        {
+          wine: "Barbera",
+          region: "Piedmont, Italy",
+          score: 85,
+          why: "For red-wine drinkers, its bright acidity matches the tomato while low tannin doesn't fight the spice.",
+          attributes: ["High acidity", "Low tannin"],
+        },
+      ],
+      avoid: ["Big tannic reds", "Heavily oaked whites"],
+      sommelierNote:
+        "Spicy tomato sauce is really two problems at once — acid for the tomato, and something to tame the heat. Solve for acid first.",
+      source: "curated",
+    },
+
+    "salmon|smoked / bbq|bbq / smoky": {
+      dishSummary:
+        "Smoked salmon — silky, rich, and intensely savory with a deep smoky cure, whether hot- or cold-smoked.",
+      pairings: [
+        {
+          wine: "Champagne",
+          region: "Champagne, France",
+          score: 95,
+          why: "One of the most reliable pairings in the entire book — bubbles and acidity cut the richness and salt perfectly. The classic brunch-table match.",
+          attributes: ["Sparkling", "High acidity", "Classic match"],
+        },
+        {
+          wine: "Off-Dry Riesling",
+          region: "Mosel, Germany",
+          score: 90,
+          why: "A touch of sweetness balances the smoke and salt beautifully.",
+          attributes: ["Off-dry", "Balances salt"],
+        },
+        {
+          wine: "Dry Rosé",
+          region: "Provence, France",
+          score: 85,
+          why: "Light, fresh, and easy — a comfortable alternative to Champagne for the same dish.",
+          attributes: ["Fresh", "Light"],
+        },
+      ],
+      avoid: ["Big tannic reds", "Heavily oaked Chardonnay"],
+      sommelierNote:
+        "Smoked salmon and Champagne is about as close to a guaranteed pairing as exists — it's a brunch staple for very good reason.",
+      source: "curated",
+    },
+
+    "turkey|smoked / bbq|bbq / smoky": {
+      dishSummary:
+        "Smoked turkey — deeply savory and smoky, a popular alternative to roasting for the holiday bird.",
+      pairings: [
+        {
+          wine: "Zinfandel",
+          region: "California",
+          score: 91,
+          why: "Jammy fruit and warmth ride alongside the smoke rather than fighting it.",
+          attributes: ["Jammy", "Bold", "Matches smoke"],
+        },
+        {
+          wine: "Pinot Noir",
+          region: "Oregon or Burgundy",
+          score: 88,
+          why: "Still flexible and food-friendly even once smoke enters the picture.",
+          attributes: ["Versatile", "Light red"],
+        },
+        {
+          wine: "Gewürztraminer",
+          region: "Alsace, France",
+          score: 85,
+          why: "For white-wine drinkers, its aromatic, slightly sweet character handles smoke comfortably.",
+          attributes: ["Aromatic", "Off-dry"],
+        },
+      ],
+      avoid: ["Delicate crisp whites", "High-tannin young reds"],
+      sommelierNote:
+        "Smoke changes turkey's usual rules — lean toward what you'd pour with barbecue, not what you'd pour with a plain roast bird.",
+      source: "curated",
+    },
   },
 
   wine: {
