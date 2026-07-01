@@ -104,6 +104,21 @@ async function callClaude(mode, inputs, apiKey) {
 }
 
 export default async function handler(req, res) {
+  // ── CORS ────────────────────────────────────────────────────────────
+  // The website calls this from the same domain, so it never needed this
+  // before. The native app's web content runs from a different origin
+  // (capacitor://localhost on iOS, http://localhost on Android), so the
+  // browser/WebView will silently block the response without this.
+  // This endpoint has no auth and is already rate-limited, so a public
+  // wildcard is reasonable here.
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
