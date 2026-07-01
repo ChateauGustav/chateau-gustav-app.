@@ -1,171 +1,117 @@
-// api/pair.js
-// Runs on Vercel's servers. Holds your API key, checks your own data first,
-// and only calls Claude when nothing cheaper can answer.
+// api/scan.js
+// Accepts a base64-encoded wine label photo from the mobile app,
+// sends it to Claude Vision, and returns structured wine information.
+// Same CORS and rate-limiting patterns as pair.js.
 
-import { getCurated, getCached, setCached, checkRateLimit } from "../lib/pairings.js";
+import { checkRateLimit } from "../lib/pairings.js";
 
-const SOMMELIER_SYSTEM =
-  "You are an expert sommelier with WSET Level 3 knowledge and a deep understanding " +
-  "of flavor chemistry. You reason about how acidity, fat, umami, salt, sweetness, " +
-  "tannin, alcohol, body, and spice interact between a dish and a wine. You go far " +
-  "deeper than generic pairing charts — you distinguish a ribeye with chimichurri " +
-  "from a filet with bearnaise, and you explain the 'why' clearly and concisely.";
+const SCAN_PROMPT = `You are an expert sommelier examining a wine label photograph.
 
-function buildFoodPrompt(i) {
-  const spiceMap = ["none", "low", "medium", "high", "very high"];
-  const spice = spiceMap[i.spice] || "low";
-  return `A user is eating:
-- Protein: ${i.protein || "unspecified"}${i.cut ? ` (${i.cut})` : ""}
-- Sauce: ${i.sauce || "none"}
-- Side: ${i.side || "none specified"}
-${i.cuisine ? `- Cuisine: ${i.cuisine}` : ""}
-- Spice level: ${spice}
-- Budget: ${i.budget || "no preference"}
+Analyze this wine label carefully and respond ONLY with valid JSON — no markdown, no backticks, no preamble.
 
-Analyze the flavor chemistry of this specific dish and recommend the top 3 wine pairings.
-
-Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure:
+If you can identify a wine label, use this structure:
 {
-  "dishSummary": "brief characterization of the dish's flavor profile",
-  "pairings": [
-    {
-      "wine": "Specific wine name",
-      "region": "Classic region or style",
-      "score": 94,
-      "why": "2-3 sentences tied to the specific dish components",
-      "attributes": ["High acidity", "Citrus-driven", "Mineral finish"],
-      "budgetNote": "optional price-range note"
-    }
-  ],
-  "avoid": ["style to avoid", "another", "third"],
-  "sommelierNote": "2-3 sentences of surprising, nuanced insight for this specific pairing."
-}`;
+  "found": true,
+  "name": "Full wine name as it appears on the label",
+  "producer": "Winery or producer name",
+  "vintage": "Year as a string, or null if not visible",
+  "grape": "Primary grape varietal or blend",
+  "region": "Region and country",
+  "appellation": "Specific appellation or designation if visible, otherwise null",
+  "style": "Red, White, Rosé, Sparkling, or Dessert",
+  "alcohol": "ABV percentage if visible, otherwise null",
+  "tastingNotes": "2–3 sentences describing the expected taste and aroma profile of this specific wine",
+  "serveTemp": "Recommended serving temperature as a short phrase, e.g. 16–18°C / 61–64°F",
+  "decant": "Yes or No, followed by a brief reason",
+  "pairings": ["Food pairing 1", "Food pairing 2", "Food pairing 3"],
+  "sommelierNote": "One memorable, insightful sentence about this wine's character or story",
+  "grapeNormalized": "The grape varietal name in lowercase, matching the app's wine list if possible — e.g. cabernet sauvignon, pinot noir, champagne / sparkling"
 }
 
-function buildWinePrompt(i) {
-  return `The user has a wine:
-- Grape: ${i.grape || "unspecified"}
-${i.region ? `- Region: ${i.region}` : ""}
-- Body: ${i.body || "unknown"}
-- Acidity: ${i.acid || "unknown"}
-- Tannin: ${i.tannin || "unknown"}
-- Sweetness: ${i.sweet || "unknown"}
-- Oak: ${i.oak || "unknown"}
+If this is NOT a wine label, or you genuinely cannot read enough of the label to identify it, respond with:
+{"found": false, "message": "Brief, friendly explanation of what you see or why you couldn't identify it"}
 
-Based on its structure, recommend the top 3 food pairings and dishes to avoid.
-
-Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure:
-{
-  "wineSummary": "brief characterization of this wine's profile and structure",
-  "pairings": [
-    {
-      "food": "Specific dish or food",
-      "score": 96,
-      "why": "2-3 sentences on the chemistry of why it works",
-      "attributes": ["Cuts through fat", "Matches weight"]
-    }
-  ],
-  "avoid": ["food to avoid", "another", "third"],
-  "sommelierNote": "2-3 sentences about this wine's most underrated pairing or a common mistake."
-}`;
-}
-
-async function callClaude(mode, inputs, apiKey) {
-  const prompt = mode === "wine" ? buildWinePrompt(inputs) : buildFoodPrompt(inputs);
-
-  const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1200,
-      system: SOMMELIER_SYSTEM,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  if (!apiResponse.ok) {
-    const errText = await apiResponse.text();
-    throw new Error(`Anthropic API ${apiResponse.status}: ${errText}`);
-  }
-
-  const data = await apiResponse.json();
-  const text = (data.content || [])
-    .map((block) => (block.type === "text" ? block.text : ""))
-    .join("");
-  const clean = text.replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(clean);
-  parsed.source = "ai";
-  return parsed;
-}
+Never guess wildly. If the vintage or appellation is not legible, return null for those fields.`;
 
 export default async function handler(req, res) {
-  // ── CORS ────────────────────────────────────────────────────────────
-  // The website calls this from the same domain, so it never needed this
-  // before. The native app's web content runs from a different origin
-  // (capacitor://localhost on iOS, http://localhost on Android), so the
-  // browser/WebView will silently block the response without this.
-  // This endpoint has no auth and is already rate-limited, so a public
-  // wildcard is reasonable here.
+  // ── CORS ──────────────────────────────────────────────────────────
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  if (req.method === "OPTIONS") {
-    return res.status(204).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  // ── Rate limit (protects your Anthropic bill) ──────────────────────────
-  // Vercel's edge sets the real client IP as the first entry in
-  // x-forwarded-for, so this is trustworthy in this environment.
+  // ── Rate limit ────────────────────────────────────────────────────
   const ip =
     (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
     req.socket?.remoteAddress ||
     "unknown";
-
   const rate = await checkRateLimit(ip);
   if (!rate.allowed) {
     return res.status(429).json({
-      error: "You've made a lot of searches recently. Please wait a few minutes and try again.",
+      error: "You've made a lot of requests recently. Please wait a few minutes and try again.",
     });
   }
 
+  // ── Validate body ─────────────────────────────────────────────────
+  const { imageData, mediaType } = req.body || {};
+  if (!imageData) return res.status(400).json({ error: "No image data provided." });
+
+  const safeMediaType = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(mediaType)
+    ? mediaType
+    : "image/jpeg";
+
+  // ── Call Claude Vision ────────────────────────────────────────────
   try {
-    const { mode, inputs } = req.body || {};
-    if (!mode || !inputs) {
-      return res.status(400).json({ error: "Missing mode or inputs." });
+    const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1024,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: safeMediaType,
+                  data: imageData,
+                },
+              },
+              {
+                type: "text",
+                text: SCAN_PROMPT,
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (!apiResponse.ok) {
+      const err = await apiResponse.json().catch(() => ({}));
+      console.error("Claude Vision API error:", err);
+      return res.status(500).json({ error: "Failed to analyze the image. Please try again." });
     }
 
-    // ── Layer 1: curated (free, instant) ──────────────────────────────────
-    const curated = getCurated(mode, inputs);
-    if (curated) return res.status(200).json(curated);
+    const data = await apiResponse.json();
+    const text = (data.content || [])
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .join("");
 
-    // ── Layer 2: cache (free, instant) ────────────────────────────────────
-    const cached = await getCached(mode, inputs);
-    if (cached) return res.status(200).json(cached);
+    const clean = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
 
-    // ── Layer 3: Claude (costs money) ─────────────────────────────────────
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "Server is missing its API key." });
-    }
-
-    const result = await callClaude(mode, inputs, apiKey);
-
-    // Store for next time so this exact query is free going forward.
-    await setCached(mode, inputs, result);
-
-    return res.status(200).json(result);
+    return res.status(200).json(parsed);
   } catch (err) {
-    console.error("Handler error:", err);
-    return res.status(500).json({ error: "Something went wrong generating pairings." });
+    console.error("Scan handler error:", err);
+    return res.status(500).json({ error: "Something went wrong analyzing the label. Please try again." });
   }
 }
