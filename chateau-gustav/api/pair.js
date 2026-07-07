@@ -11,7 +11,20 @@ const SOMMELIER_SYSTEM =
   "deeper than generic pairing charts — you distinguish a ribeye with chimichurri " +
   "from a filet with bearnaise, and you explain the 'why' clearly and concisely.";
 
-function buildFoodPrompt(i) {
+function buildPreferenceAddendum(prefs) {
+  if (!prefs) return "";
+  const parts = [];
+  if (prefs.name) parts.push(`- Drinker: ${prefs.name}`);
+  if (prefs.styles && prefs.styles.length) parts.push(`- Preferred styles: ${prefs.styles.join(", ")}`);
+  if (prefs.favoriteGrapes && prefs.favoriteGrapes.length) parts.push(`- Favorite grapes: ${prefs.favoriteGrapes.join(", ")}`);
+  if (prefs.avoidGrapes && prefs.avoidGrapes.length) parts.push(`- Grapes/styles to avoid: ${prefs.avoidGrapes.join(", ")}`);
+  if (prefs.budget) parts.push(`- Budget preference: ${prefs.budget}`);
+  if (prefs.dietaryNotes) parts.push(`- Dietary/other notes: ${prefs.dietaryNotes}`);
+  if (!parts.length) return "";
+  return `\n\nUSER WINE PREFERENCES (soft guidance — use these to personalise recommendations, but always prioritise what genuinely pairs best with the dish. If the best pairing clashes with a preference, still recommend it and briefly acknowledge the tension):\n${parts.join("\n")}`;
+}
+
+function buildFoodPrompt(i, prefs) {
   const spiceMap = ["none", "low", "medium", "high", "very high"];
   const spice = spiceMap[i.spice] || "low";
   return `A user is eating:
@@ -20,7 +33,7 @@ function buildFoodPrompt(i) {
 - Side: ${i.side || "none specified"}
 ${i.cuisine ? `- Cuisine: ${i.cuisine}` : ""}
 - Spice level: ${spice}
-- Budget: ${i.budget || "no preference"}
+- Budget: ${i.budget || "no preference"}${buildPreferenceAddendum(prefs)}
 
 Analyze the flavor chemistry of this specific dish and recommend the top 3 wine pairings.
 
@@ -42,7 +55,7 @@ Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure
 }`;
 }
 
-function buildWinePrompt(i) {
+function buildWinePrompt(i, prefs) {
   return `The user has a wine:
 - Grape: ${i.grape || "unspecified"}
 ${i.region ? `- Region: ${i.region}` : ""}
@@ -50,7 +63,7 @@ ${i.region ? `- Region: ${i.region}` : ""}
 - Acidity: ${i.acid || "unknown"}
 - Tannin: ${i.tannin || "unknown"}
 - Sweetness: ${i.sweet || "unknown"}
-- Oak: ${i.oak || "unknown"}
+- Oak: ${i.oak || "unknown"}${buildPreferenceAddendum(prefs)}
 
 Based on its structure, recommend the top 3 food pairings and dishes to avoid.
 
@@ -70,8 +83,47 @@ Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure
 }`;
 }
 
-async function callClaude(mode, inputs, apiKey) {
-  const prompt = mode === "wine" ? buildWinePrompt(inputs) : buildFoodPrompt(inputs);
+function buildFridgePrompt(wines, prefs) {
+  const wineList = (wines || [])
+    .map((w, i) => {
+      const parts = [w.name || w.grape || 'Unknown wine'];
+      if (w.grape && w.name) parts.push(`(${w.grape})`);
+      if (w.region) parts.push(`from ${w.region}`);
+      if (w.vintage) parts.push(`— ${w.vintage} vintage`);
+      return `${i + 1}. ${parts.join(' ')}`;
+    })
+    .join('\n');
+
+  const prefNote = prefs ? buildPreferenceAddendum(prefs) : '';
+
+  return `A user has the following wines open or available to drink tonight:
+
+${wineList}
+
+Recommend 3 dishes that pair well across this selection. Prioritise dishes that bridge all the wines harmoniously. If the wines are quite different in style, identify the bridge — the structural element they share (acidity, weight, tannin) — and let that guide the pairing.${prefNote}
+
+Respond ONLY with valid JSON (no markdown, no backticks) in this structure:
+{
+  "intro": "1–2 sentences about what these wines have in common structurally, and what that means for the table",
+  "pairings": [
+    {
+      "food": "Dish name",
+      "why": "Why this works across all the wines present",
+      "score": 90,
+      "attributes": ["attribute1", "attribute2", "attribute3"]
+    }
+  ],
+  "avoid": ["food type to avoid given these wines"],
+  "sommelierNote": "One memorable insight about serving these wines together or in sequence"
+}`;
+}
+
+async function callClaude(mode, inputs, apiKey, preferences) {
+  const prompt = mode === "fridge"
+    ? buildFridgePrompt(inputs.wines, preferences)
+    : mode === "wine"
+      ? buildWinePrompt(inputs, preferences)
+      : buildFoodPrompt(inputs, preferences);
 
   const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -139,16 +191,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { mode, inputs } = req.body || {};
+    const { mode, inputs, preferences } = req.body || {};
     if (!mode || !inputs) {
       return res.status(400).json({ error: "Missing mode or inputs." });
     }
 
     // ── Layer 1: curated (free, instant) ──────────────────────────────────
+    // Preferences only affect the AI layer — curated results are already
+    // the best possible pairings, so we serve them as-is.
     const curated = getCurated(mode, inputs);
     if (curated) return res.status(200).json(curated);
 
     // ── Layer 2: cache (free, instant) ────────────────────────────────────
+    // Note: cached results don't factor in preferences (they were generated
+    // on a previous request without them). Accept this tradeoff for speed.
     const cached = await getCached(mode, inputs);
     if (cached) return res.status(200).json(cached);
 
@@ -158,7 +214,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Server is missing its API key." });
     }
 
-    const result = await callClaude(mode, inputs, apiKey);
+    const result = await callClaude(mode, inputs, apiKey, preferences);
 
     // Store for next time so this exact query is free going forward.
     await setCached(mode, inputs, result);
