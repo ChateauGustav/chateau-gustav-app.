@@ -25,7 +25,10 @@ If you can identify a wine label, use this structure:
   "decant": "Yes or No, followed by a brief reason",
   "pairings": ["Food pairing 1", "Food pairing 2", "Food pairing 3"],
   "sommelierNote": "One memorable, insightful sentence about this wine's character or story",
-  "grapeNormalized": "The grape varietal name in lowercase, matching the app's wine list if possible — e.g. cabernet sauvignon, pinot noir, champagne / sparkling"
+  "grapeNormalized": "The grape varietal name in lowercase, matching the app's wine list if possible — e.g. cabernet sauvignon, pinot noir, champagne / sparkling",
+  "drinkingWindow": "The range of years during which this wine is best enjoyed, e.g. '2024–2030', or 'Drink now', or 'Best after 2027'. Base this on the grape, region, producer reputation, and vintage if visible. If genuinely unknown, return null.",
+  "peakDate": "The year or short range when this wine will be at its absolute best, e.g. '2026–2028'. If the wine is already past peak or best drunk now, say so. If unknown, return null.",
+  "agingAdvice": "1–2 sentences explaining this wine's aging potential — whether to cellar it, open it now, or that the window is closing."
 }
 
 If this is NOT a wine label, or you genuinely cannot read enough of the label to identify it, respond with:
