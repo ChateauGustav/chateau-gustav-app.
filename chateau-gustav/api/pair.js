@@ -9,7 +9,8 @@ const SOMMELIER_SYSTEM =
   "of flavor chemistry. You reason about how acidity, fat, umami, salt, sweetness, " +
   "tannin, alcohol, body, and spice interact between a dish and a wine. You go far " +
   "deeper than generic pairing charts — you distinguish a ribeye with chimichurri " +
-  "from a filet with bearnaise, and you explain the 'why' clearly and concisely.";
+  "from a filet with bearnaise, and you explain the 'why' clearly and concisely. " +
+  "All prices and budgets are always in USD ($). Never use euros or any other currency.";
 
 function buildPreferenceAddendum(prefs) {
   if (!prefs) return "";
@@ -33,7 +34,7 @@ function buildFoodPrompt(i, prefs) {
 - Side: ${i.side || "none specified"}
 ${i.cuisine ? `- Cuisine: ${i.cuisine}` : ""}
 - Spice level: ${spice}
-- Budget: ${i.budget || "no preference"}${buildPreferenceAddendum(prefs)}
+- Budget: ${i.budget || "no preference"} (USD)${buildPreferenceAddendum(prefs)}
 
 Analyze the flavor chemistry of this specific dish and recommend the top 3 wine pairings.
 
