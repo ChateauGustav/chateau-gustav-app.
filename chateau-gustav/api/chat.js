@@ -1,7 +1,7 @@
 // api/chat.js
-// Powers the "Ask Gustav" AI sommelier chat feature.
-// Accepts a conversation history and returns Gustav's next response.
-// Same CORS and rate-limiting patterns as pair.js and scan.js.
+// Powers the "Ask Gustav" AI sommelier chat.
+// Streams the response back word-by-word so the user sees text
+// appearing immediately rather than waiting for the full reply.
 
 import { checkRateLimit } from "../lib/pairings.js";
 
@@ -55,19 +55,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "No messages provided." });
   }
 
-  // Cap history to last 20 messages to keep costs reasonable
   const trimmed = messages.slice(-20);
 
-  // Inject preferences into the first message context if they exist
+  // Build system prompt with preferences
   let system = GUSTAV_SYSTEM;
   if (preferences) {
     const parts = [];
     if (preferences.name) parts.push(`The user's name is ${preferences.name}.`);
-    if (preferences.favoriteGrapes && preferences.favoriteGrapes.length)
+    if (preferences.favoriteGrapes?.length)
       parts.push(`Their favourite grapes: ${preferences.favoriteGrapes.join(", ")}.`);
-    if (preferences.styles && preferences.styles.length)
+    if (preferences.styles?.length)
       parts.push(`Their preferred styles: ${preferences.styles.join(", ")}.`);
-    if (preferences.avoidGrapes && preferences.avoidGrapes.length)
+    if (preferences.avoidGrapes?.length)
       parts.push(`They prefer to avoid: ${preferences.avoidGrapes.join(", ")}.`);
     if (preferences.budget)
       parts.push(`Their typical budget per bottle: ${preferences.budget}.`);
@@ -78,7 +77,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── Call Claude ───────────────────────────────────────────────────
+  // ── Stream from Claude ────────────────────────────────────────────
   try {
     const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -88,8 +87,9 @@ export default async function handler(req, res) {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-sonnet-4-6",  // keep Sonnet for chat quality
         max_tokens: 1024,
+        stream: true,
         system,
         messages: trimmed,
       }),
@@ -97,19 +97,49 @@ export default async function handler(req, res) {
 
     if (!apiResponse.ok) {
       const err = await apiResponse.json().catch(() => ({}));
-      console.error("Claude chat API error:", err);
+      console.error("Claude stream error:", err);
       return res.status(500).json({ error: "Gustav is unavailable right now. Try again in a moment." });
     }
 
-    const data = await apiResponse.json();
-    const text = (data.content || [])
-      .map((b) => (b.type === "text" ? b.text : ""))
-      .join("")
-      .trim();
+    // Stream raw text back to the client
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("X-Accel-Buffering", "no");
 
-    return res.status(200).json({ reply: text });
+    const reader = apiResponse.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop(); // keep incomplete line for next chunk
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6).trim();
+        if (data === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.type === "content_block_delta" && parsed.delta?.text) {
+            res.write(parsed.delta.text);
+          }
+        } catch (e) {
+          // Skip malformed SSE lines
+        }
+      }
+    }
+
+    res.end();
   } catch (err) {
-    console.error("Chat handler error:", err);
-    return res.status(500).json({ error: "Something went wrong. Please try again." });
+    console.error("Chat stream error:", err);
+    // If headers already sent, can't send JSON error
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Something went wrong. Please try again." });
+    }
+    res.end();
   }
 }
