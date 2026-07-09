@@ -206,15 +206,13 @@ export default async function handler(req, res) {
     }
 
     // ── Layer 1: curated (free, instant) ──────────────────────────────────
-    // Preferences only affect the AI layer — curated results are already
-    // the best possible pairings, so we serve them as-is.
-    const curated = getCurated(mode, inputs);
+    // Fridge mode always goes straight to Claude — combinations of wines
+    // can't be pre-curated and shouldn't be cached between users.
+    const curated = mode === 'fridge' ? null : getCurated(mode, inputs);
     if (curated) return res.status(200).json(curated);
 
     // ── Layer 2: cache (free, instant) ────────────────────────────────────
-    // Note: cached results don't factor in preferences (they were generated
-    // on a previous request without them). Accept this tradeoff for speed.
-    const cached = await getCached(mode, inputs);
+    const cached = mode === 'fridge' ? null : await getCached(mode, inputs);
     if (cached) return res.status(200).json(cached);
 
     // ── Layer 3: Claude (costs money) ─────────────────────────────────────
@@ -225,8 +223,8 @@ export default async function handler(req, res) {
 
     const result = await callClaude(mode, inputs, apiKey, preferences);
 
-    // Store for next time so this exact query is free going forward.
-    await setCached(mode, inputs, result);
+    // Store for next time — but not fridge results, which are unique per combo.
+    if (mode !== 'fridge') await setCached(mode, inputs, result);
 
     return res.status(200).json(result);
   } catch (err) {
