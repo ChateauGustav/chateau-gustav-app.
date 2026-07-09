@@ -134,8 +134,8 @@ async function callClaude(mode, inputs, apiKey, preferences) {
       ? buildWinePrompt(inputs, preferences)
       : buildFoodPrompt(inputs, preferences);
 
-  // Fridge responses are longer (multiple wines × 3 dishes), give more room
-  const maxTokens = mode === "fridge" ? 1200 : 800;
+  // Give all modes enough room — gourmet inputs generate longer responses
+  const maxTokens = 1200;
 
   const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
