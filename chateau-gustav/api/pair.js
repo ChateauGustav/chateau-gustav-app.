@@ -134,6 +134,9 @@ async function callClaude(mode, inputs, apiKey, preferences) {
       ? buildWinePrompt(inputs, preferences)
       : buildFoodPrompt(inputs, preferences);
 
+  // Fridge responses are longer (multiple wines × 3 dishes), give more room
+  const maxTokens = mode === "fridge" ? 1200 : 800;
+
   const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -143,7 +146,7 @@ async function callClaude(mode, inputs, apiKey, preferences) {
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 800,
+      max_tokens: maxTokens,
       system: SOMMELIER_SYSTEM,
       messages: [{ role: "user", content: prompt }],
     }),
@@ -158,8 +161,11 @@ async function callClaude(mode, inputs, apiKey, preferences) {
   const text = (data.content || [])
     .map((block) => (block.type === "text" ? block.text : ""))
     .join("");
-  const clean = text.replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(clean);
+  // Extract the JSON object robustly — handles backtick fences,
+  // preamble text, and trailing content that Haiku occasionally adds.
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error(`No JSON object found in Claude response: ${text.slice(0, 200)}`);
+  const parsed = JSON.parse(jsonMatch[0]);
   parsed.source = "ai";
   return parsed;
 }
