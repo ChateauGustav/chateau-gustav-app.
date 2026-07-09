@@ -87,8 +87,16 @@ Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure
 function buildFridgePrompt(wines, prefs) {
   const wineList = (wines || [])
     .map((w, i) => {
-      const parts = [w.name || w.grape || 'Unknown wine'];
-      if (w.grape && w.name) parts.push(`(${w.grape})`);
+      const parts = [];
+      // If name and grape are the same (manually added), just say "A [grape]"
+      if (w.name && w.grape && w.name !== w.grape) {
+        parts.push(w.name);
+        parts.push(`(${w.grape})`);
+      } else if (w.grape) {
+        parts.push(w.grape);
+      } else {
+        parts.push(w.name || 'Unknown wine');
+      }
       if (w.region) parts.push(`from ${w.region}`);
       if (w.vintage) parts.push(`— ${w.vintage} vintage`);
       return `${i + 1}. ${parts.join(' ')}`;
@@ -101,7 +109,7 @@ function buildFridgePrompt(wines, prefs) {
 
 ${wineList}
 
-Recommend 3 dishes that pair well across this selection. Prioritise dishes that bridge all the wines harmoniously. If the wines are quite different in style, identify the bridge — the structural element they share (acidity, weight, tannin) — and let that guide the pairing.${prefNote}
+Recommend 3 dishes that pair well across ALL of these wines — every wine listed must be considered equally in your recommendation, regardless of how much detail is provided about each one. Prioritise dishes that bridge all the wines harmoniously. If the wines are quite different in style, identify the structural bridge they share (acidity, weight, tannin) and let that guide the pairing.${prefNote}
 
 Respond ONLY with valid JSON (no markdown, no backticks) in this structure:
 {
