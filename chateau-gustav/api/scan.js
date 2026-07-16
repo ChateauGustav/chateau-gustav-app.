@@ -5,7 +5,11 @@
 
 import { checkRateLimit } from "../lib/pairings.js";
 
-const SCAN_PROMPT = `You are an expert sommelier examining a wine label photograph.
+function buildScanPrompt() {
+  const currentYear = new Date().getFullYear();
+  return `You are an expert sommelier examining a wine label photograph.
+
+For reference, today's actual real-world year is ${currentYear}. Use this — not your training data cutoff — as "now" for any date reasoning below.
 
 Analyze this wine label carefully and respond ONLY with valid JSON — no markdown, no backticks, no preamble.
 
@@ -28,7 +32,7 @@ If you can identify a wine label, use this structure:
   "grapeNormalized": "The grape varietal name in lowercase, matching the app's wine list if possible — e.g. cabernet sauvignon, pinot noir, champagne / sparkling",
   "drinkingWindow": "The range of years during which this wine is best enjoyed, e.g. '2024–2030', or 'Drink now', or 'Best after 2027'. Base this on the grape, region, producer reputation, and vintage if visible. If genuinely unknown, return null.",
   "peakDate": "The year or short range when this wine will be at its absolute best, e.g. '2026–2028'. If the wine is already past peak or best drunk now, say so. If unknown, return null.",
-  "peakYear": "A single 4-digit integer (not a string) for the year this wine hits its peak — the middle of the peakDate range if it's a range, or the single year if it's specific. If the wine is already past peak or should be drunk now, use the current year. If truly unknown, use null (not a string, not 0).",
+  "peakYear": "REQUIRED whenever peakDate is not null — do not skip this field. A single 4-digit integer (a JSON number, not a string): the middle year of the peakDate range if it's a range (e.g. '2026–2028' → 2027), or the single year if peakDate names one. If peakDate says the wine is already at peak, past peak, or best drunk now, set peakYear to exactly ${currentYear} (this year) — do not leave it null in that case. Only use null here if peakDate itself is null. Example: vintage 2021 Cabernet with a 3–5 year aging potential and no other info → peakDate 'Already at peak; best within 3–5 years of release' → peakYear ${currentYear}.",
   "agingAdvice": "1–2 sentences explaining this wine's aging potential — whether to cellar it, open it now, or that the window is closing."
 }
 
@@ -36,6 +40,7 @@ If this is NOT a wine label, or you genuinely cannot read enough of the label to
 {"found": false, "message": "Brief, friendly explanation of what you see or why you couldn't identify it"}
 
 Never guess wildly. If the vintage or appellation is not legible, return null for those fields.`;
+}
 
 export default async function handler(req, res) {
   // ── CORS ──────────────────────────────────────────────────────────
@@ -91,7 +96,7 @@ export default async function handler(req, res) {
               },
               {
                 type: "text",
-                text: SCAN_PROMPT,
+                text: buildScanPrompt(),
               },
             ],
           },
