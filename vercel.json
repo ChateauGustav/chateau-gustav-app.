@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/check-drinking-windows",
+      "schedule": "0 14 * * *"
+    }
+  ]
+}
