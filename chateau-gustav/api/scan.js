@@ -28,6 +28,7 @@ If you can identify a wine label, use this structure:
   "grapeNormalized": "The grape varietal name in lowercase, matching the app's wine list if possible — e.g. cabernet sauvignon, pinot noir, champagne / sparkling",
   "drinkingWindow": "The range of years during which this wine is best enjoyed, e.g. '2024–2030', or 'Drink now', or 'Best after 2027'. Base this on the grape, region, producer reputation, and vintage if visible. If genuinely unknown, return null.",
   "peakDate": "The year or short range when this wine will be at its absolute best, e.g. '2026–2028'. If the wine is already past peak or best drunk now, say so. If unknown, return null.",
+  "peakYear": "A single 4-digit integer (not a string) for the year this wine hits its peak — the middle of the peakDate range if it's a range, or the single year if it's specific. If the wine is already past peak or should be drunk now, use the current year. If truly unknown, use null (not a string, not 0).",
   "agingAdvice": "1–2 sentences explaining this wine's aging potential — whether to cellar it, open it now, or that the window is closing."
 }
 
