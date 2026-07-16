@@ -57,6 +57,11 @@ export default async function handler(req, res) {
               title: "This wine is ready to drink",
               body: `Your ${wine.name || "wine"} is entering its peak drinking window this year.`,
             },
+            android: {
+              notification: {
+                channelId: "drinking_window_alerts",
+              },
+            },
             data: {
               type: "drinking_window",
               wineId: wineDoc.id,
