@@ -51,7 +51,7 @@ export default async function handler(req, res) {
       for (const wineDoc of wineDocsByUser[uid]) {
         const wine = wineDoc.data();
         try {
-          await messaging.sendEachForMulticast({
+          const sendResult = await messaging.sendEachForMulticast({
             tokens,
             notification: {
               title: "This wine is ready to drink",
@@ -62,6 +62,19 @@ export default async function handler(req, res) {
               wineId: wineDoc.id,
             },
           });
+
+          // The API call can "succeed" while still failing to deliver to a
+          // specific device (stale/invalid token, etc.) — log the actual
+          // per-token result so failures are visible, not just assumed.
+          console.log(
+            `uid=${uid} wine=${wineDoc.id} successCount=${sendResult.successCount} failureCount=${sendResult.failureCount}`
+          );
+          sendResult.responses.forEach((r, i) => {
+            if (!r.success) {
+              console.error(`  token[${i}] failed:`, r.error && r.error.message);
+            }
+          });
+
           await wineDoc.ref.update({ notifiedForPeakYear: currentYear });
           notifiedCount++;
         } catch (err) {
