@@ -177,7 +177,7 @@
     font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; font-weight: 600;
     color: var(--gold); display: block; margin-bottom: 0.3rem;
   }
-  .share-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+  .share-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
   .btn-outline {
     flex: 1; padding: 0.65rem; border: 1px solid var(--mist); border-radius: var(--radius);
     background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
@@ -453,6 +453,8 @@ async function getPairings(mode) {
 }
 
 function renderResults(data, mode) {
+  window.__lastPairingData = data;
+  window.__lastMode = mode;
   const results = document.getElementById('results');
   const pairings = data.pairings || [];
   const avoid = data.avoid || [];
@@ -496,7 +498,8 @@ function renderResults(data, mode) {
 
   html += `
     <div class="share-row">
-      <button class="btn-outline" onclick="alert('Sharing coming soon!')">Share pairing card</button>
+      <button class="btn-outline" id="share-download-btn" onclick="shareCard('download')">Download pairing card</button>
+      <button class="btn-outline" id="share-send-btn" onclick="shareCard('share')">Send to someone</button>
       <button class="btn-outline" onclick="window.scrollTo({top:0,behavior:'smooth'})">New search</button>
     </div>`;
 
@@ -504,6 +507,165 @@ function renderResults(data, mode) {
   results.style.display = 'block';
   results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+// ── SHARE PAIRING CARD ───────────────────────────────────────────
+// Renders the top pairing result as a branded 1080×1350 image, matching
+// the app's wine/gold palette and fonts, then either downloads it or
+// hands it to the device's native share sheet.
+
+function wrapCanvasText(ctx, text, centerX, y, maxWidth, lineHeight, maxLines) {
+  var words = (text || '').split(' ');
+  var line = '';
+  var lines = [];
+  for (var n = 0; n < words.length; n++) {
+    var testLine = line + words[n] + ' ';
+    if (ctx.measureText(testLine).width > maxWidth && n > 0) {
+      lines.push(line.trim());
+      line = words[n] + ' ';
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line.trim());
+  if (maxLines && lines.length > maxLines) {
+    lines = lines.slice(0, maxLines);
+    lines[maxLines - 1] = lines[maxLines - 1].replace(/[.,;:\s]+$/, '') + '…';
+  }
+  lines.forEach(function(l, i) {
+    ctx.fillText(l, centerX, y + i * lineHeight);
+  });
+  return lines.length;
+}
+
+async function renderShareCardCanvas(data, mode) {
+  // Make sure the brand fonts are actually loaded before drawing —
+  // otherwise canvas silently falls back to a generic system font.
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (e) {}
+  }
+
+  var top = (data.pairings || [])[0];
+  if (!top) return null;
+
+  var W = 1080, H = 1350;
+  var canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // Background — same wine gradient as the app's own brand marks
+  var grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, '#2d0914');
+  grad.addColorStop(1, '#591d2a');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center';
+
+  var title = mode === 'food' ? top.wine : top.food;
+  var summary = mode === 'food' ? (data.dishSummary || '') : (data.wineSummary || '');
+
+  // Eyebrow
+  ctx.fillStyle = '#d4aa56';
+  ctx.font = '500 26px "DM Sans"';
+  ctx.fillText(mode === 'food' ? 'YOUR PERFECT PAIRING' : 'GREAT WITH THIS WINE', W / 2, 150);
+
+  // Match score
+  ctx.fillStyle = '#f2e6c9';
+  ctx.font = '500 40px "DM Sans"';
+  ctx.fillText(top.score + '% MATCH', W / 2, 205);
+
+  // Title — the recommended wine or dish
+  ctx.fillStyle = '#f8f4ee';
+  ctx.font = '400 80px "Cormorant Garamond"';
+  var titleLines = wrapCanvasText(ctx, title, W / 2, 330, W - 160, 88, 3);
+
+  // "Why" reasoning, positioned below the title with room for wrapping
+  var whyY = 330 + titleLines * 88 + 70;
+  ctx.fillStyle = '#cbb8ae';
+  ctx.font = '300 28px "DM Sans"';
+  wrapCanvasText(ctx, top.why || '', W / 2, whyY, W - 220, 42, 5);
+
+  // Divider
+  ctx.strokeStyle = '#b8933a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(W / 2 - 60, H - 320);
+  ctx.lineTo(W / 2 + 60, H - 320);
+  ctx.stroke();
+
+  // What you started with (the dish or wine you searched)
+  ctx.fillStyle = '#a89a95';
+  ctx.font = '300 24px "DM Sans"';
+  wrapCanvasText(ctx, summary, W / 2, H - 270, W - 260, 34, 2);
+
+  // Footer wordmark
+  ctx.fillStyle = '#d4aa56';
+  ctx.font = '500 22px "DM Sans"';
+  ctx.fillText('CHÂTEAU', W / 2, H - 140);
+  ctx.fillStyle = '#f8f4ee';
+  ctx.font = '400 50px "Cormorant Garamond"';
+  ctx.fillText('Gustav', W / 2, H - 85);
+  ctx.fillStyle = '#8a7d75';
+  ctx.font = '300 20px "DM Sans"';
+  ctx.fillText('chateaugustav.com', W / 2, H - 45);
+
+  return canvas;
+}
+
+async function shareCard(action) {
+  var data = window.__lastPairingData;
+  var mode = window.__lastMode || 'food';
+  if (!data) return;
+
+  var downloadBtn = document.getElementById('share-download-btn');
+  var sendBtn = document.getElementById('share-send-btn');
+  var btn = action === 'download' ? downloadBtn : sendBtn;
+  var originalLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Preparing…'; }
+
+  try {
+    var canvas = await renderShareCardCanvas(data, mode);
+    if (!canvas) return;
+
+    canvas.toBlob(async function(blob) {
+      if (!blob) return;
+      var fileName = 'chateau-gustav-pairing.png';
+
+      if (action === 'share') {
+        var file = new File([blob], fileName, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Château Gustav Pairing',
+              text: 'A pairing from Château Gustav — sommelier-level pairing, not lookup tables.'
+            });
+            if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+            return;
+          } catch (e) {
+            // User cancelled, or share failed — fall through to download
+            // so they still get the card rather than nothing happening.
+          }
+        }
+      }
+
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+
+      if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+    }, 'image/png');
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+  }
+}
+
 // ── CASCADING FOOD FORM ───────────────────────────────────────────
 var CUT_OPTIONS = {
   'Beef': ['Ribeye','T-bone','NY Strip','Filet mignon','Sirloin','Brisket','Short ribs','Flank / Skirt steak','Burger','Meatballs','Chuck roast','Wagyu','Tartare / Crudo'],
