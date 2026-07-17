@@ -544,8 +544,8 @@ async function renderShareCardCanvas(data, mode) {
     try { await document.fonts.ready; } catch (e) {}
   }
 
-  var top = (data.pairings || [])[0];
-  if (!top) return null;
+  var pairings = (data.pairings || []).slice(0, 4);
+  if (!pairings.length) return null;
 
   var W = 1080, H = 1350;
   var canvas = document.createElement('canvas');
@@ -562,42 +562,54 @@ async function renderShareCardCanvas(data, mode) {
 
   ctx.textAlign = 'center';
 
-  var title = mode === 'food' ? top.wine : top.food;
   var summary = mode === 'food' ? (data.dishSummary || '') : (data.wineSummary || '');
 
   // Eyebrow
   ctx.fillStyle = '#d4aa56';
   ctx.font = '500 26px "DM Sans"';
-  ctx.fillText(mode === 'food' ? 'YOUR PERFECT PAIRING' : 'GREAT WITH THIS WINE', W / 2, 150);
+  ctx.fillText(mode === 'food' ? 'YOUR PAIRINGS' : 'GREAT WITH THIS WINE', W / 2, 100);
 
-  // Match score
-  ctx.fillStyle = '#f2e6c9';
-  ctx.font = '500 40px "DM Sans"';
-  ctx.fillText(top.score + '% MATCH', W / 2, 205);
-
-  // Title — the recommended wine or dish
-  ctx.fillStyle = '#f8f4ee';
-  ctx.font = '400 80px "Cormorant Garamond"';
-  var titleLines = wrapCanvasText(ctx, title, W / 2, 330, W - 160, 88, 3);
-
-  // "Why" reasoning, positioned below the title with room for wrapping
-  var whyY = 330 + titleLines * 88 + 70;
+  // What you searched
   ctx.fillStyle = '#cbb8ae';
-  ctx.font = '300 28px "DM Sans"';
-  wrapCanvasText(ctx, top.why || '', W / 2, whyY, W - 220, 42, 5);
+  ctx.font = '300 26px "DM Sans"';
+  var summaryLines = wrapCanvasText(ctx, summary, W / 2, 150, W - 240, 36, 2);
 
-  // Divider
-  ctx.strokeStyle = '#b8933a';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 60, H - 320);
-  ctx.lineTo(W / 2 + 60, H - 320);
-  ctx.stroke();
+  // Footer reserves the bottom ~300px — everything else is the pairings list
+  var footerTop = H - 300;
+  var listTop = 150 + summaryLines * 36 + 50;
+  var listHeight = footerTop - listTop;
+  var rowHeight = listHeight / pairings.length;
 
-  // What you started with (the dish or wine you searched)
-  ctx.fillStyle = '#a89a95';
-  ctx.font = '300 24px "DM Sans"';
-  wrapCanvasText(ctx, summary, W / 2, H - 270, W - 260, 34, 2);
+  pairings.forEach(function (p, i) {
+    var rowTop = listTop + i * rowHeight;
+    var rowCenter = rowTop + rowHeight / 2;
+    var title = mode === 'food' ? p.wine : p.food;
+
+    // Rank + match score
+    ctx.fillStyle = i === 0 ? '#d4aa56' : '#a08a72';
+    ctx.font = '500 22px "DM Sans"';
+    ctx.fillText('#' + (i + 1) + '  ·  ' + p.score + '% MATCH', W / 2, rowTop + 34);
+
+    // Title
+    ctx.fillStyle = '#f8f4ee';
+    ctx.font = (i === 0 ? '400 54px' : '400 44px') + ' "Cormorant Garamond"';
+    var titleLines = wrapCanvasText(ctx, title, W / 2, rowTop + 90, W - 200, i === 0 ? 58 : 50, i === 0 ? 2 : 1);
+
+    // Why — short, since space is shared across several entries
+    ctx.fillStyle = '#cbb8ae';
+    ctx.font = '300 22px "DM Sans"';
+    wrapCanvasText(ctx, p.why || '', W / 2, rowTop + 90 + titleLines * (i === 0 ? 58 : 50) + 34, W - 260, 30, i === 0 ? 2 : 1);
+
+    // Divider between entries (not after the last one)
+    if (i < pairings.length - 1) {
+      ctx.strokeStyle = 'rgba(184,147,58,0.35)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(W / 2 - 100, rowTop + rowHeight - 14);
+      ctx.lineTo(W / 2 + 100, rowTop + rowHeight - 14);
+      ctx.stroke();
+    }
+  });
 
   // Footer wordmark
   ctx.fillStyle = '#d4aa56';
