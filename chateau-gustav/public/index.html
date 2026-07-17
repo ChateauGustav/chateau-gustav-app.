@@ -6,7 +6,7 @@
 <title>Château Gustav — Wine Pairing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Allura&display=swap" rel="stylesheet" />
 <style>
   :root {
     --ink:       #1a1612;
@@ -509,15 +509,13 @@ function renderResults(data, mode) {
 }
 
 // ── SHARE PAIRING CARD ───────────────────────────────────────────
-// Renders all pairing results as a branded 1080×1350 image, matching
-// the app's wine/gold palette and fonts, then either downloads it or
-// hands it to the device's native share sheet. Layout is measured
-// before drawing so it never overlaps or leaves lopsided gaps,
+// Renders all pairing results as a branded, editorial-style card image —
+// a distinct panel for the top pick plus a compact ranked list for the
+// rest — then either downloads it or hands it to the native share sheet.
+// Canvas height is computed from actual measured content, and layout
+// uses computeLayout()'s dry-run pass so nothing overlaps or clips
 // regardless of how many pairings or how long the text is.
 
-// Wraps text to fit maxWidth and returns the resulting lines (measurement
-// only — does not draw). Used by both the layout pass and the draw pass
-// so wrapping is always consistent with whatever font size is active.
 function computeWrappedLines(ctx, text, maxWidth, maxLines) {
   var words = (text || '').split(' ');
   var line = '';
@@ -538,50 +536,69 @@ function computeWrappedLines(ctx, text, maxWidth, maxLines) {
   }
   return lines;
 }
-
-function drawLines(ctx, lines, centerX, y, lineHeight) {
-  lines.forEach(function (l, i) { ctx.fillText(l, centerX, y + i * lineHeight); });
+function drawLinesLeft(ctx, lines, x, y, lineHeight) {
+  lines.forEach(function (l, i) { ctx.fillText(l, x, y + i * lineHeight); });
+}
+function truncateToWidth(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  var t = text;
+  while (t.length > 1 && ctx.measureText(t + '…').width > maxWidth) {
+    t = t.slice(0, -1);
+  }
+  return t.trim() + '…';
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
-// Measures how tall the pairings list would be at a given scale, without
-// drawing anything — lets us shrink everything uniformly up front if it
-// wouldn't otherwise fit, instead of finding out mid-draw and overlapping.
-function layoutPairings(ctx, pairings, mode, W, scale) {
-  var sizes = {
-    rankSize: 22 * scale, rankGap: 30 * scale,
-    titleSizeTop: 52 * scale, titleSizeOther: 40 * scale,
-    titleLHTop: 58 * scale, titleLHOther: 46 * scale,
-    titleGap: 26 * scale,
-    whySizeTop: 24 * scale, whySizeOther: 20 * scale,
-    whyLHTop: 32 * scale, whyLHOther: 27 * scale,
-    rowBottomPad: 40 * scale
+// Dry-run measurement pass — no drawing, just figures out how tall
+// everything will be so the real canvas can be sized to fit exactly.
+function computeCardLayout(ctx, data, mode, W, M) {
+  var pairings = (data.pairings || []).slice(0, 4);
+  var summary = mode === 'food' ? (data.dishSummary || '') : (data.wineSummary || '');
+
+  ctx.font = '300 26px "DM Sans"';
+  var summaryLines = computeWrappedLines(ctx, summary, W - M * 2, 2);
+
+  var y = 150 + summaryLines.length * 36 + 55;
+
+  var top = pairings[0];
+  var topTitle = mode === 'food' ? top.wine : top.food;
+  var cardW = W - M * 2;
+  var cardPad = 48;
+
+  ctx.font = '400 56px "Cormorant Garamond"';
+  var titleLines = computeWrappedLines(ctx, topTitle, cardW - cardPad * 2, 2);
+  ctx.font = '300 25px "DM Sans"';
+  var whyLines = computeWrappedLines(ctx, top.why || '', cardW - cardPad * 2, 3);
+
+  var badgeH = 46;
+  var cardH = cardPad + badgeH + 30 + titleLines.length * 62 + 22 + whyLines.length * 34 + cardPad;
+  var cardY = y;
+
+  y = cardY + cardH + 56;
+
+  var rest = pairings.slice(1);
+  var listTop = y;
+  if (rest.length) {
+    y += 42;
+    y += rest.length * 66;
+  }
+
+  return {
+    summaryLines: summaryLines, cardY: cardY, cardH: cardH, cardW: cardW, cardPad: cardPad,
+    badgeH: badgeH, titleLines: titleLines, whyLines: whyLines,
+    listTop: listTop, rest: rest, contentBottom: y
   };
-  var rows = [];
-  var totalH = 0;
-  pairings.forEach(function (p, i) {
-    var isTop = i === 0;
-    var title = mode === 'food' ? p.wine : p.food;
-
-    ctx.font = '400 ' + (isTop ? sizes.titleSizeTop : sizes.titleSizeOther) + 'px "Cormorant Garamond"';
-    var titleLines = computeWrappedLines(ctx, title, W - 200, isTop ? 2 : 1);
-
-    ctx.font = '300 ' + (isTop ? sizes.whySizeTop : sizes.whySizeOther) + 'px "DM Sans"';
-    var whyLines = computeWrappedLines(ctx, p.why || '', W - 260, isTop ? 2 : 1);
-
-    var rowH = sizes.rankSize + sizes.rankGap
-      + titleLines.length * (isTop ? sizes.titleLHTop : sizes.titleLHOther) + sizes.titleGap
-      + whyLines.length * (isTop ? sizes.whyLHTop : sizes.whyLHOther)
-      + sizes.rowBottomPad;
-
-    rows.push({ isTop: isTop, title: title, titleLines: titleLines, whyLines: whyLines, score: p.score, rowH: rowH });
-    totalH += rowH;
-  });
-  return { rows: rows, totalH: totalH, sizes: sizes };
 }
 
 async function renderShareCardCanvas(data, mode) {
-  // Make sure the brand fonts are actually loaded before drawing —
-  // otherwise canvas silently falls back to a generic system font.
   if (document.fonts && document.fonts.ready) {
     try { await document.fonts.ready; } catch (e) {}
   }
@@ -589,92 +606,164 @@ async function renderShareCardCanvas(data, mode) {
   var pairings = (data.pairings || []).slice(0, 4);
   if (!pairings.length) return null;
 
-  var W = 1080, H = 1350;
+  var W = 1080, M = 80;
+
+  // Pass 1: measure against a scratch canvas to size the real one correctly
+  var scratch = document.createElement('canvas');
+  scratch.width = W; scratch.height = 10;
+  var sctx = scratch.getContext('2d');
+  var layout = computeCardLayout(sctx, data, mode, W, M);
+
+  var footerH = 190;
+  var H = Math.max(1150, Math.min(1500, layout.contentBottom + footerH));
+
+  // Pass 2: draw for real at the correctly-sized canvas
   var canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = W; canvas.height = H;
   var ctx = canvas.getContext('2d');
 
-  // Background — same wine gradient as the app's own brand marks
   var grad = ctx.createLinearGradient(0, 0, W, H);
   grad.addColorStop(0, '#2d0914');
   grad.addColorStop(1, '#591d2a');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.textAlign = 'center';
+  // Oversized CG monogram watermark bleeding off the bottom-right — same
+  // brand device as the app icon, for texture instead of a flat gradient.
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = '400 640px "Allura"';
+  ctx.fillStyle = 'rgba(212,170,86,0.07)';
+  ctx.fillText('CG', W - 520, H - 60);
+  ctx.restore();
+
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  var summary = mode === 'food' ? (data.dishSummary || '') : (data.wineSummary || '');
-
-  // Eyebrow
+  // ── Header ──────────────────────────────────────────────
   ctx.fillStyle = '#d4aa56';
-  ctx.font = '500 26px "DM Sans"';
-  ctx.fillText(mode === 'food' ? 'YOUR PAIRINGS' : 'GREAT WITH THIS WINE', W / 2, 100);
+  ctx.font = '500 24px "DM Sans"';
+  ctx.fillText(mode === 'food' ? 'YOUR PAIRINGS' : 'GREAT WITH THIS WINE', M, 80);
 
-  // What you searched
+  ctx.strokeStyle = '#d4aa56';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(M, 122);
+  ctx.lineTo(M + 56, 122);
+  ctx.stroke();
+
   ctx.fillStyle = '#cbb8ae';
   ctx.font = '300 26px "DM Sans"';
-  var summaryLines = computeWrappedLines(ctx, summary, W - 240, 2);
-  drawLines(ctx, summaryLines, W / 2, 150, 36);
+  drawLinesLeft(ctx, layout.summaryLines, M, 150, 36);
 
-  var footerTop = H - 260;
-  var listTop = 150 + (summaryLines.length - 1) * 36 + 70;
-  var available = footerTop - listTop;
+  // ── Top pick card ───────────────────────────────────────
+  var top = pairings[0];
+  var cardX = M, cardW = layout.cardW, cardPad = layout.cardPad, cardY = layout.cardY, cardH = layout.cardH;
 
-  // Measure at full size first; only shrink if it genuinely wouldn't fit —
-  // most searches (2-3 pairings) never need this, it's a safety net for
-  // longer lists or unusually long wine names/reasoning.
-  var layout = layoutPairings(ctx, pairings, mode, W, 1);
-  var scale = 1;
-  if (layout.totalH > available) {
-    scale = Math.max(0.6, available / layout.totalH);
-    layout = layoutPairings(ctx, pairings, mode, W, scale);
+  ctx.fillStyle = 'rgba(255,255,255,0.045)';
+  roundRect(ctx, cardX, cardY, cardW, cardH, 22);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(212,170,86,0.4)';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, cardX, cardY, cardW, cardH, 22);
+  ctx.stroke();
+
+  var badgeText = top.score + '% MATCH';
+  ctx.font = '500 20px "DM Sans"';
+  var badgeTextW = ctx.measureText(badgeText).width;
+  var badgeW = badgeTextW + 40;
+  var badgeH = layout.badgeH;
+  roundRect(ctx, cardX + cardPad, cardY + cardPad, badgeW, badgeH, badgeH / 2);
+  ctx.fillStyle = '#d4aa56';
+  ctx.fill();
+  ctx.fillStyle = '#2d0914';
+  ctx.textAlign = 'center';
+  ctx.fillText(badgeText, cardX + cardPad + badgeW / 2, cardY + cardPad + badgeH / 2 - 10);
+  ctx.textAlign = 'left';
+
+  var innerY = cardY + cardPad + badgeH + 30;
+  ctx.fillStyle = '#f8f4ee';
+  ctx.font = '400 56px "Cormorant Garamond"';
+  drawLinesLeft(ctx, layout.titleLines, cardX + cardPad, innerY, 62);
+  innerY += layout.titleLines.length * 62 + 22;
+
+  ctx.fillStyle = '#cbb8ae';
+  ctx.font = '300 25px "DM Sans"';
+  drawLinesLeft(ctx, layout.whyLines, cardX + cardPad, innerY, 34);
+
+  // ── Secondary pairings: compact ranked list ─────────────
+  var y = layout.listTop;
+  var rest = layout.rest;
+  if (rest.length) {
+    ctx.fillStyle = '#a08a72';
+    ctx.font = '500 18px "DM Sans"';
+    ctx.fillText('ALSO CONSIDER', M, y);
+    y += 42;
+
+    rest.forEach(function (p, idx) {
+      var rowY = y;
+      var name = mode === 'food' ? p.wine : p.food;
+
+      ctx.strokeStyle = 'rgba(212,170,86,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(M + 14, rowY + 18, 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#d4aa56';
+      ctx.font = '500 16px "DM Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText(String(idx + 2), M + 14, rowY + 10);
+      ctx.textAlign = 'left';
+
+      ctx.fillStyle = '#f2e9e2';
+      ctx.font = '400 32px "Cormorant Garamond"';
+      var maxNameWidth = cardW - 60 - 130;
+      var displayName = truncateToWidth(ctx, name, maxNameWidth);
+      ctx.fillText(displayName, M + 46, rowY + 3);
+
+      ctx.fillStyle = '#a08a72';
+      ctx.font = '400 22px "DM Sans"';
+      ctx.textAlign = 'right';
+      ctx.fillText(p.score + '%', M + cardW, rowY + 8);
+      ctx.textAlign = 'left';
+
+      y += 66;
+      if (idx < rest.length - 1) {
+        ctx.strokeStyle = 'rgba(212,170,86,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(M, y - 12);
+        ctx.lineTo(M + cardW, y - 12);
+        ctx.stroke();
+      }
+    });
   }
 
-  var y = listTop + Math.max(0, (available - layout.totalH) / 2);
-  layout.rows.forEach(function (row, i) {
-    var s = layout.sizes;
+  // ── Footer — anchored to the bottom of the canvas, which is itself
+  // sized to the real content, so this never overlaps or gets clipped.
+  var footerY = H - footerH + 40;
+  ctx.strokeStyle = 'rgba(212,170,86,0.25)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(M, footerY);
+  ctx.lineTo(W - M, footerY);
+  ctx.stroke();
 
-    ctx.fillStyle = row.isTop ? '#d4aa56' : '#a08a72';
-    ctx.font = '500 ' + s.rankSize + 'px "DM Sans"';
-    ctx.fillText('#' + (i + 1) + '  ·  ' + row.score + '% MATCH', W / 2, y + s.rankSize);
-    y += s.rankSize + s.rankGap;
-
-    ctx.fillStyle = '#f8f4ee';
-    ctx.font = '400 ' + (row.isTop ? s.titleSizeTop : s.titleSizeOther) + 'px "Cormorant Garamond"';
-    drawLines(ctx, row.titleLines, W / 2, y, row.isTop ? s.titleLHTop : s.titleLHOther);
-    y += row.titleLines.length * (row.isTop ? s.titleLHTop : s.titleLHOther) + s.titleGap;
-
-    ctx.fillStyle = '#cbb8ae';
-    ctx.font = '300 ' + (row.isTop ? s.whySizeTop : s.whySizeOther) + 'px "DM Sans"';
-    drawLines(ctx, row.whyLines, W / 2, y, row.isTop ? s.whyLHTop : s.whyLHOther);
-    y += row.whyLines.length * (row.isTop ? s.whyLHTop : s.whyLHOther) + s.rowBottomPad;
-
-    if (i < layout.rows.length - 1) {
-      ctx.strokeStyle = 'rgba(184,147,58,0.35)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(W / 2 - 100, y - s.rowBottomPad / 2);
-      ctx.lineTo(W / 2 + 100, y - s.rowBottomPad / 2);
-      ctx.stroke();
-    }
-  });
-
-  // Footer wordmark — positioned relative to footerTop so it sits close
-  // to the content above it rather than leaving a large dead gap.
+  ctx.textAlign = 'center';
   ctx.fillStyle = '#d4aa56';
-  ctx.font = '500 22px "DM Sans"';
-  ctx.fillText('CHÂTEAU', W / 2, footerTop + 45);
+  ctx.font = '500 20px "DM Sans"';
+  ctx.fillText('CHÂTEAU', W / 2, footerY + 26);
   ctx.fillStyle = '#f8f4ee';
-  ctx.font = '400 50px "Cormorant Garamond"';
-  ctx.fillText('Gustav', W / 2, footerTop + 82);
+  ctx.font = '400 44px "Cormorant Garamond"';
+  ctx.fillText('Gustav', W / 2, footerY + 58);
   ctx.fillStyle = '#8a7d75';
-  ctx.font = '300 20px "DM Sans"';
-  ctx.fillText('chateaugustav.com', W / 2, footerTop + 152);
+  ctx.font = '300 18px "DM Sans"';
+  ctx.fillText('chateaugustav.com', W / 2, footerY + 108);
 
   return canvas;
 }
+
 
 async function shareCard(action) {
   var data = window.__lastPairingData;
