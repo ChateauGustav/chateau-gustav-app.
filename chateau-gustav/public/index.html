@@ -555,9 +555,54 @@ var SHARE_INK = '#1a1612', SHARE_PARCHMENT = '#f7f3ed', SHARE_GOLD = '#b8933a',
     SHARE_ROUGE = '#7c2d3e', SHARE_MIST = '#e8e2d9', SHARE_DIM = '#7a7068', SHARE_WHITE = '#ffffff';
 var SHARE_RANK_COLORS = [SHARE_GOLD, SHARE_DIM, SHARE_MIST, SHARE_MIST];
 
+var SHARE_SPICE_LABELS = ['Mild', 'Low', 'Medium', 'Hot', 'Very hot'];
+
+// Builds a plain, factual recap of what was actually selected in the form
+// — e.g. "Pork Tenderloin with Apple sauce, Baked beans · Medium spice" —
+// rather than the AI-generated flavor-chemistry summary shown on the page
+// itself. Reads the live form fields directly, same as collectInputs().
+function buildInputSummary(mode) {
+  if (mode === 'food') {
+    var protein = (document.getElementById('f-protein') || {}).value || '';
+    var cut = (document.getElementById('f-cut') || {}).value || '';
+    var sauce = (document.getElementById('f-sauce') || {}).value || '';
+    var side = (document.getElementById('f-side') || {}).value || '';
+    var cuisine = (document.getElementById('f-cuisine') || {}).value || '';
+    var spiceEl = document.getElementById('f-spice');
+    var spice = spiceEl ? parseInt(spiceEl.value, 10) : NaN;
+    var budget = (document.getElementById('f-budget') || {}).value || '';
+
+    var main = [protein, cut].filter(Boolean).join(' ');
+    var withList = [sauce, side].filter(Boolean).join(', ');
+    var withText = withList ? ' with ' + withList : '';
+
+    var extras = [];
+    if (cuisine && cuisine !== 'Any') extras.push(cuisine + ' style');
+    if (!isNaN(spice) && SHARE_SPICE_LABELS[spice]) extras.push(SHARE_SPICE_LABELS[spice] + ' spice');
+    if (budget && budget !== 'No preference') extras.push(budget);
+    var extrasText = extras.length ? ' · ' + extras.join(' · ') : '';
+
+    return (main + withText + extrasText) || 'Your dish';
+  }
+
+  var grape = (document.getElementById('w-grape') || {}).value || '';
+  var region = (document.getElementById('w-region') || {}).value || '';
+  var body = (document.getElementById('w-body') || {}).value || '';
+  var acid = (document.getElementById('w-acid') || {}).value || '';
+  var tannin = (document.getElementById('w-tannin') || {}).value || '';
+  var sweet = (document.getElementById('w-sweet') || {}).value || '';
+  var oak = (document.getElementById('w-oak') || {}).value || '';
+
+  var main = [grape, region].filter(Boolean).join(', ');
+  var extras = [body, acid, tannin, sweet, oak].filter(Boolean);
+  var extrasText = extras.length ? ' · ' + extras.join(' · ') : '';
+
+  return (main + extrasText) || 'Your wine';
+}
+
 function computeCardLayout(ctx, data, mode, W, M) {
   var pairings = (data.pairings || []).slice(0, 4);
-  var summary = mode === 'food' ? (data.dishSummary || '') : (data.wineSummary || '');
+  var summary = buildInputSummary(mode);
 
   ctx.font = '300 26px "DM Sans"';
   var summaryLines = computeWrappedLines(ctx, summary, W - M * 2, 2);
