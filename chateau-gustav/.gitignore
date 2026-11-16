@@ -1,0 +1,4 @@
+
+# Real restaurant data for the admin loader (keep out of git)
+scripts/*.json
+!scripts/restaurant.example.json

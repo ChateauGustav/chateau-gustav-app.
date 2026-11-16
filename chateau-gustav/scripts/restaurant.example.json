@@ -1,0 +1,55 @@
+{
+  "restaurant": {
+    "id": "example-bistro-dallas",
+    "name": "Example Bistro",
+    "city": "Dallas",
+    "cuisine": "French",
+    "status": "paused",
+    "contact": { "name": "Chef Name", "email": "manager@example.com" }
+  },
+  "menus": [
+    {
+      "id": "autumn-tasting",
+      "name": "Autumn Tasting Menu",
+      "active": true,
+      "courses": [
+        { "order": 1, "name": "First" },
+        { "order": 2, "name": "Main" }
+      ]
+    }
+  ],
+  "dishes": [
+    {
+      "id": "short-rib",
+      "menuId": "autumn-tasting",
+      "course": 2,
+      "name": "Braised short rib",
+      "description": "Red wine reduction, root vegetables"
+    }
+  ],
+  "wines": [
+    {
+      "id": "gevrey-2019",
+      "producer": "Example Domaine",
+      "name": "Gevrey-Chambertin",
+      "vintage": 2019,
+      "region": "Burgundy",
+      "style": "red",
+      "glassPrice": null,
+      "bottlePrice": 95,
+      "inStock": true,
+      "lastVerified": "2026-11-16"
+    }
+  ],
+  "pairings": [
+    {
+      "id": "short-rib-gevrey",
+      "dishId": "short-rib",
+      "wineId": "gevrey-2019",
+      "pairingType": "bottle",
+      "matchScore": 94,
+      "explanation": "Medium tannins cut through the richness of the braise, and the wine's earthy notes echo the roasted vegetables.",
+      "status": "draft"
+    }
+  ]
+}
