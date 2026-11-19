@@ -4,6 +4,7 @@
 // Same CORS and rate-limiting patterns as pair.js.
 
 import { checkRateLimit } from "../lib/pairings.js";
+import { gateUsage, sendLimitReached, sendSignInRequired } from "../lib/usage.js";
 
 function buildScanPrompt() {
   const currentYear = new Date().getFullYear();
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
   // ── CORS ──────────────────────────────────────────────────────────
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
@@ -62,6 +63,7 @@ export default async function handler(req, res) {
     });
   }
 
+
   // ── Validate body ─────────────────────────────────────────────────
   const { imageData, mediaType } = req.body || {};
   if (!imageData) return res.status(400).json({ error: "No image data provided." });
@@ -69,6 +71,11 @@ export default async function handler(req, res) {
   const safeMediaType = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(mediaType)
     ? mediaType
     : "image/jpeg";
+
+  // ── Per-user allowance ────────────────────────────────────────────
+  const gate = await gateUsage(req, "scan");
+  if (gate.signInRequired) return sendSignInRequired(res);
+  if (!gate.allowed) return sendLimitReached(res, gate, "scan");
 
   // ── Call Claude Vision ────────────────────────────────────────────
   try {

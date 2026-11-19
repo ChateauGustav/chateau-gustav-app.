@@ -4,6 +4,7 @@
 // appearing immediately rather than waiting for the full reply.
 
 import { checkRateLimit } from "../lib/pairings.js";
+import { gateUsage, sendLimitReached, sendSignInRequired } from "../lib/usage.js";
 
 const GUSTAV_SYSTEM = `You are Gustav — the AI sommelier behind Château Gustav, a private wine tasting and consulting practice founded by Dele Faulkner, WSET Level 2, based in Dallas, Texas, serving Dallas, Austin, and Houston.
 
@@ -33,7 +34,7 @@ export default async function handler(req, res) {
   // ── CORS ──────────────────────────────────────────────────────────
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
@@ -48,6 +49,7 @@ export default async function handler(req, res) {
       error: "You've been chatting a lot — give it a few minutes and come back.",
     });
   }
+
 
   // ── Validate ──────────────────────────────────────────────────────
   const { messages, preferences } = req.body || {};
@@ -76,6 +78,11 @@ export default async function handler(req, res) {
       system += `\n\nUSER PREFERENCES (use naturally when relevant):\n${parts.join("\n")}`;
     }
   }
+
+  // ── Per-user allowance ────────────────────────────────────────────
+  const gate = await gateUsage(req, "chat");
+  if (gate.signInRequired) return sendSignInRequired(res);
+  if (!gate.allowed) return sendLimitReached(res, gate, "chat");
 
   // ── Stream from Claude ────────────────────────────────────────────
   try {

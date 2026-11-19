@@ -3,6 +3,7 @@
 // and only calls Claude when nothing cheaper can answer.
 
 import { getCurated, getCached, setCached, checkRateLimit } from "../lib/pairings.js";
+import { gateUsage, sendLimitReached, sendSignInRequired } from "../lib/usage.js";
 
 const SOMMELIER_SYSTEM =
   "You are an expert sommelier with WSET Level 3 knowledge and a deep understanding " +
@@ -180,7 +181,7 @@ export default async function handler(req, res) {
   // wildcard is reasonable here.
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -205,11 +206,17 @@ export default async function handler(req, res) {
     });
   }
 
+
   try {
     const { mode, inputs, preferences } = req.body || {};
     if (!mode || !inputs) {
       return res.status(400).json({ error: "Missing mode or inputs." });
     }
+
+    // ── Per-user allowance ────────────────────────────────────────────
+    const gate = await gateUsage(req, "pair");
+    if (gate.signInRequired) return sendSignInRequired(res);
+    if (!gate.allowed) return sendLimitReached(res, gate, "pair");
 
     // ── Layer 1: curated (free, instant) ──────────────────────────────────
     // Fridge mode always goes straight to Claude — combinations of wines
